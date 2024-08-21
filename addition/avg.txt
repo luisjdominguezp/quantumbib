@@ -1,0 +1,1 @@
+CPU clock rate avg = 1.163
