@@ -36,10 +36,10 @@ int main(){
     uint64_t start, end;
     int variable = 0;
 
-    long long p1[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
-    long long p2[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
-    //long long p1[SIZE] = {2, 4, 6, 8};
-    //long long p2[SIZE] = {1, 2, 3, 4};
+    unsigned long long p1[SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF};
+    unsigned long long p2[SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF};
+    //unsigned long long p1[SIZE] = {1, 2, 3, 4};
+    //unsigned long long p2[SIZE] = {1, 1, 1, 1};
 
 
     long long result[R_SIZE] = {0};
