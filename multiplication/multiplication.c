@@ -27,6 +27,7 @@ void mult(long long p1[], long long p2[], long long r[]){
             r[i+j] = temp;
             carry = temp >> 64;
         }
+        //any excess is added to the next element
         r[i+SIZE] += carry;
     }
 }
@@ -35,10 +36,10 @@ int main(){
     uint64_t start, end;
     int variable = 0;
 
-    //long long p1[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
-    //long long p2[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
-    long long p1[SIZE] = {2, 4, 6, 8};
-    long long p2[SIZE] = {1, 2, 3, 4};
+    long long p1[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
+    long long p2[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
+    //long long p1[SIZE] = {2, 4, 6, 8};
+    //long long p2[SIZE] = {1, 2, 3, 4};
 
 
     long long result[R_SIZE] = {0};
@@ -52,7 +53,7 @@ int main(){
     start = __rdtsc();
     mult(p1, p2, result);
     for(int i = 0;i<R_SIZE;i++){
-        printf("%lld\n", result[i]);
+        printf("%X\n", result[i]);
     }
     end = __rdtsc();
 
