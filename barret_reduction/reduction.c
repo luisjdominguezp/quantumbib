@@ -13,7 +13,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 
-__int128 mult128(__int128 num, __int128 num2){
+__uint128_t mult128(__uint128_t num, __uint128_t num2){
     return num * num2;
 }
 
@@ -22,9 +22,9 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     int b_k = 5;
     //b_b^(2*b_k) / p2[0]
     __uint128_t big_b = ((__uint128_t)b_b) << (2*b_k);
-    unsigned long long mu = (unsigned long long)(big_b / p2[0]);
+    unsigned long long mu = big_b / p2[0];
     printf("Value of mu: %llu\n", mu);
-    unsigned long long b_mask = 1ULL << ((b_w *(b_k + 1))-1);
+    unsigned long long b_mask = 1ULL << (b_w * (b_k + 1))-1;
     printf("Value of b_mask: %llu\n", b_mask);
     unsigned long long b_expo = (b_b << (b_w * (b_k + 1)));
     printf("Value of b_expo: %llu\n", b_expo);
@@ -45,17 +45,18 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     printf("Start of second loop...\n");
     for(int i = 0;i<SIZE;i++){
         //p1 % b^(n+1)
-        printf("Value of p1 @ i: %llu - %d\n", p1[i], i);
-        unsigned long long mod_p1 = p1[i] & b_mask;
-        printf("Value of mod_p1 @ i: %llu - %d\n", mod_p1, i);
-        //(qh * p) % b^(n+1)
-        __int128 qh_p1 = mult128(qh[i], p1[i]);
-        unsigned long long qh_p1_lower = (unsigned long long)qh_p1;  // Lower 64 bits
-        unsigned long long qh_p1_upper = (unsigned long long)(qh_p1 >> 64);  // Upper 64 bits
+        __uint128_t mod_p1 = p1[i] & b_mask;
+        printf("Value of mod_p1 @ i: %llu - %d\n", (unsigned long long)mod_p1, i);
+        //(qh * p)
+        __uint128_t qh_p1 = mult128(qh[i], p1[i]);
+        unsigned long long qh_p1_lower = (unsigned long long)qh_p1;
+        unsigned long long qh_p1_upper = (unsigned long long)(qh_p1 >> 64);
         printf("Value of qh_p1 @ i: lower=%llu, upper=%llu\n", qh_p1_lower, qh_p1_upper);
-        printf("Value of qh_p1 @ i: %llu - %d\n", qh_p1, i);
-        unsigned long long mod_qh = (unsigned long long)(qh_p1 & b_mask);
-        printf("Value of mod_qh @ i: %llu - %d\n", mod_qh, i);
+        printf("Value of qh_p1 @ i: %llu - %d\n", (unsigned long long)qh_p1, i);
+        //(qh * p) % b^(n+1)
+        __int128 mod_qh = qh_p1 & b_mask;
+        printf("Value of mod_qh @ i: lower=%llu, upper=%llu\n", 
+               (unsigned long long)(mod_qh), (unsigned long long)(mod_qh >> 64));
         if(mod_p1 >= mod_qh){
             rs[i] = mod_p1 - mod_qh;
         } else {
