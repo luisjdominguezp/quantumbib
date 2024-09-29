@@ -1,61 +1,56 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <x86intrin.h>
+#include <gmp.h>
 
 #define SIZE 4
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
 #define NTEST 100000
 #define b_w 64
-#define b_b (1ULL << (b_w - 1))
-
-
 
 void measured_function(volatile int *var) {(*var) = 1; }
-
-__uint128_t mult128(__uint128_t num, __uint128_t num2){
-    return num * num2;
-}
-
-void mult(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
-    int i,j;
-    __int128 temp = 0;
-    for(i = 0;i<SIZE;i++){
-        uint64_t carry = 0;
-        for(j = 0;j<SIZE;j++){
-            // (carry,sum) <- r[i+j] + a[j] * b[i] + carry
-            temp = mult128(p1[j], p2[i]);
-            temp = r[i+j] + temp + carry;
-            r[i+j] = temp;
-            carry = temp >> 64;
-        }
-        //any excess is added to the next element
-        r[i+j+1] = carry;
-    }
-}
-void sub_with_borrow(long long p1[], long long p2[], long long r[]){
-    long long borrow = 0;
-    for(int i = 0;i<SIZE;i++){
-        //difference
-        r[i] = p1[i] - p2[i] - borrow;
-        borrow = (p1[i] < p2[i] + borrow);
-    }
-}
 
 void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
     //SIZE + 1
     int b_k = 5;
-    //b_b^(2*b_k) / p2[0]
-    __uint128_t big_b = ((__uint128_t)b_b) << (2*b_k);
-    unsigned long long mu = big_b / p2[0];
-    printf("Value of mu: %llu\n", mu);
-    unsigned long long b_mask = 1ULL << ((b_w * (b_k + 1))-1);
-    printf("Value of b_mask: %llX\n", b_mask);
-    unsigned long long b_expo = (b_b << (b_w * (b_k + 1)));
-    printf("Value of b_expo: %llX\n", b_expo);
-    __uint128_t qh = 0;
+    //gmp library was imported to handle big variables such as b_b, mu, b_mask, b_expo
+    mpz_t b_b;
+    mpz_init(b_b);
+    //b_b = 2^b_w
+    mpz_ui_pow_ui(b_b, 2, b_w);
+    //b_b^(2*b_k) / p2
+    //p being modulus
+    mpz_t p;
+    mpz_init(p);
+    //imports p2[] into a number
+    mpz_import(p, SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
+    gmp_printf("Value of imported p: %Zx\n", p);
+    mpz_t big_b_pow, mu;
+    mpz_inits(big_b_pow, mu, NULL);
+    //b_b^2*b_k
+    mpz_pow_ui(big_b_pow, b_b, 2*b_k);
+    //mu = b_b^2*b_k / p
+    mpz_fdiv_q(mu, big_b_pow, p);
+    gmp_printf("Value of mu: %Zx\n", mu);
+    //b_mask = 2^(b_w*(b_k+1))-1
+    mpz_t b_mask;
+    mpz_init(b_mask);
+    mpz_ui_pow_ui(b_mask, 2, b_w * (b_k + 1));
+    mpz_sub_ui(b_mask, b_mask, 1);
+    gmp_printf("Value of b_mask: %Zx\n", b_mask);
+    //e^384
+    mp_bitcnt_t exponent = 64 * (b_k + 1);
+    gmp_printf("Value of exponent: %Zd\n", exponent);
+    //b_b^(b_k+1)
+    mpz_t b_expo;
+    mpz_init(b_expo);
+    mpz_pow_ui(b_expo, b_b, b_k + 1);
+    gmp_printf("Value of b_expo: %Zx\n", b_expo);
+    //__uint128_t qh = 0;
     //[7,6,5,4,3,2,1,0]
     //[0,0,0,0,0,0,7,6]
+    /*
     for(int i =0;i<R_SIZE;i++){
         printf("Value of p1 @ i: %016llX - %d\n", p1[i], i);
     }
@@ -66,7 +61,7 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     }
     int numShouldBe384Bits = (b_w * (b_k + 1));
     printf("Decimal value of bw * (b_k + 1) should be 384,  just making sure. Value = %d\n", numShouldBe384Bits);
-    unsigned long long mu_array[SIZE] = {3, 5, 2, 9};
+    unsigned long long mu_array[SIZE] = {};
     unsigned long long result_to_be_shifted[R_SIZE] = {0};
     //qh = (temp * mu) >> numShouldBe384Bits;
     mult(temp, mu_array, result_to_be_shifted);
@@ -74,27 +69,63 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     __uint128_t lastElement = (__uint128_t)result_to_be_shifted[7];
     __uint128_t firstTwoElements = ((lastElement << 64) | result_to_be_shifted[6]);
     qh = ((lastElement << 64) | result_to_be_shifted[6]);
-
+    
     printf("---qh---\n");
     printf("Value of qh: upper=%016llX, lower=%016llX\n", 
            (unsigned long long)(qh >> 64), 
            (unsigned long long)(qh & 0xFFFFFFFFFFFFFFFF));
     //rs = sub_with_borrow(p1, mult(qh, p2), r);
     //reduce p1 with mod and pass it to the subtraction function
+    //reduced p1[] is mod(z, b_expo) and reduced multRes is mod(mult(qh, p2[]), b_expo)
     unsigned long long reduced_p1[SIZE] = {0};
     unsigned long long multRes[R_SIZE] = {0};
     unsigned long long temp_qh[SIZE] = {0};
     temp_qh[0] = (qh >> 64);
     temp_qh[1] = (qh & 0xFFFFFFFFFFFFFFFF);
     mult(temp_qh, p2, multRes);
+
     //then the pass the result of the mult of qh and p2[]
     sub_with_borrow(reduced_p1, multRes, r);
-     
-    
+    */
+    mpz_t z, qh, rs, temp, temp2;
+    mpz_inits(z, qh, rs, temp, NULL);
+    mpz_import(z, R_SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
+    //qh = (((z >> b_w*(b_k-1)) * mu) >> (b_w * (b_k + 1)))
+    //temp = z >> b_w*(b_k-1) 
+    mpz_fdiv_q_2exp(temp, z, b_w * (b_k - 1));
+    //temp * mu
+    mpz_mul(temp2, temp, mu);
+    //temp2 >> b_w * (b_k + 1)
+    mpz_fdiv_q_2exp(qh, temp2, b_w * (b_k + 1));
+    gmp_printf("Value of qh: %Zx\n", qh);
+
+    mpz_t rsTemp, rsTemp2, rsT, mul2;
+    mpz_inits(rsTemp, rsTemp2, rsT, mul2, NULL);
+    //mod(z, b_expo)
+    mpz_mod_2exp(rsTemp, z, exponent);
+    //mod(mul(qh, p), b_expo)
+    mpz_mul(mul2, qh, p);
+    mpz_mod_2exp(rsTemp2, mul2, exponent);
+    mpz_sub(rsT, rsTemp, rsTemp2);
+
+    if(mpz_sgn(rsT) < 0){
+        mpz_add(rsT, rsT, b_expo);
+    }
+
+    while(mpz_cmp(rsT, p) >= 0) {
+        mpz_sub(rsT, rsT, p);
+    }
+    size_t count;
+
+
+    mpz_export(r, &count, 1, sizeof(unsigned long long), 0, 0, rsT);
+    printf("Number of blocks or limbs exported: %zu\n", count);
+
+    mpz_clears(b_b, p, big_b_pow, mu, b_expo, z, qh, temp, temp2, rsT, rsTemp, rsTemp2, mul2, NULL);
 
 }
 
-int main(){
+int main(){ 
     uint64_t start, end;
     int variable = 0;
 
@@ -116,7 +147,7 @@ int main(){
     printf("Calculating Result...\n");
     start = __rdtsc();
     reduc(p1, p2, result);
-    for(int i = R_SIZE;i>=0;i--){
+    for(int i = SIZE;i>=0;i--){
         printf("%016llX\n", result[i]);
     }
     end = __rdtsc();
