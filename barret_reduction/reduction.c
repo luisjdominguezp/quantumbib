@@ -143,7 +143,7 @@ int main(){
     }
     end = __rdtsc();
 
-    printf("\nTotal = %f CPU cycles", (float)(end - start) / NTEST);
+    printf("\nTotal = %f CPU cycles\n", (float)(end - start) / NTEST);
 
     return 0;
 }
