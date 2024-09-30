@@ -109,7 +109,7 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
 
 
     mpz_export(r, &count, 1, sizeof(unsigned long long), 0, 0, rsT);
-    printf("Number of blocks or limbs exported: %zu\n", count);
+    //printf("Number of blocks or limbs exported: %zu\n", count);
 
     mpz_clears(b_b, p, big_b_pow, mu, b_expo, z, qh, temp, temp2, rsT, rsTemp, rsTemp2, mul2, NULL);
 
@@ -137,12 +137,13 @@ int main(){
     printf("Calculating Result...\n");
     start = __rdtsc();
     reduc(p1, p2, result);
+    printf("Result is: ");
     for(int i = 0;i<SIZE;i++){
-        printf("%016llX\n", result[i]);
+        printf("%016llX", result[i]);
     }
     end = __rdtsc();
 
-    printf("Total = %f CPU cycles\n", (float)(end - start) / NTEST);
+    printf("\nTotal = %f CPU cycles", (float)(end - start) / NTEST);
 
     return 0;
 }
