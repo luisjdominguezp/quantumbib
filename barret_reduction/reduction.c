@@ -122,11 +122,12 @@ int main(){
     //unsigned long long p1[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
     //unsigned long long p2[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
 
-    unsigned long long p1[R_SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF};
+    //unsigned long long p1[R_SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF};
+    unsigned long long p1[R_SIZE] = {0, 0, 0, 0, 0x2523648240000002, 0xe101d68000000016, 0x175700000000004d, 0x1900000000000068};
     unsigned long long p2[SIZE] = {0x2523648240000002, 0xe101d68000000016, 0x175700000000004d, 0x1900000000000067};
 
 
-    unsigned long long result[R_SIZE] = {0};
+    unsigned long long result[SIZE] = {0};
 
     
     printf("Warming up the cpu.\n");
@@ -138,7 +139,7 @@ int main(){
     start = __rdtsc();
     reduc(p1, p2, result);
     printf("Result is: ");
-    for(int i = 0;i<SIZE;i++){
+    for(int i = SIZE;i>=0;i--){
         printf("%016llX", result[i]);
     }
     end = __rdtsc();
