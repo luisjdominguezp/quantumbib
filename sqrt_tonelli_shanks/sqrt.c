@@ -26,7 +26,6 @@ int legendre(mpz_t a, mpz_t p){
         }
 
         int v = 0;
-        // While A is even
         while (mpz_even_p(A)) {
             v += 1;
             mpz_fdiv_q_2exp(A, A, 1); // A = A / 2
@@ -48,12 +47,9 @@ int legendre(mpz_t a, mpz_t p){
             k = -k;
         }
 
-        // r = A
         mpz_t r;
         mpz_init_set(r, A);
-        // A = B % r
         mpz_mod(A, B, r);
-        // B = r
         mpz_set(B, r);
 
         mpz_clear(r);
@@ -69,13 +65,16 @@ int legendre(mpz_t a, mpz_t p){
 }
 
 void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
-    mpz_t f, p, result;
-    mpz_inits(f, p, result, NULL);
+    mpz_t b1, f, p, result;
+    mpz_inits(b1, f, p, result, NULL);
 
-    mpz_import(f, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
+    mpz_import(b1, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
     mpz_import(p, SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
-    gmp_printf("Value of base f: %Zd\n", f);
-    gmp_printf("Value of modulus p: %Zd\n", p);
+    gmp_printf("Value of base: %ZX\n", b1);
+    gmp_printf("Value of modulus p: %ZX\n", p);
+
+    mpz_powm_ui(f, b1, 2, p);
+    gmp_printf("Computed f = x^2 mod p: %ZX\n", f);
 
     // Check if f is a quadratic residue modulo p
     int legendre_value = legendre(f, p);
@@ -84,15 +83,15 @@ void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long
             r[i] = 0;
         }
         r[0] = (unsigned long long)-1;
-        mpz_clears(f, p, result, NULL);
+        mpz_clears(f, p, b1, result, NULL);
         return;
     }
 
     if (mpz_cmp_ui(p, 2) == 0) {
         mpz_set(result, f);
         size_t count;
-        mpz_export(r, &count, -1, sizeof(unsigned long long), 0, 0, result);
-        mpz_clears(f, p, result, NULL);
+        mpz_export(r, &count, 1, sizeof(unsigned long long), 0, 0, result);
+        mpz_clears(f, p, b1, result, NULL);
         return;
     }
 
@@ -112,7 +111,7 @@ void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long
     // Find a quadratic non-residue z modulo p
     mpz_t z;
     mpz_init_set_ui(z, 2);
-    while (mpz_legendre(z, p) != -1) {
+    while (legendre(z, p) != -1) {
         mpz_add_ui(z, z, 1);
     }
 
@@ -150,7 +149,7 @@ void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long
                 r[idx] = 0;
             }
             r[0] = (unsigned long long)-1;
-            mpz_clears(f, p, result, Q, tmp, z, c, x, t, b, NULL);
+            mpz_clears(f, p, b1, result, Q, tmp, z, c, x, t, b, NULL);
             return;
         }
 
@@ -162,13 +161,12 @@ void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long
         mpz_mod(x, x, p);
 
         // t = t * b^2 mod p
-        mpz_mul(t, t, b);
+        mpz_powm_ui(b, b, 2, p);
         mpz_mul(t, t, b);
         mpz_mod(t, t, p);
 
-        // c = b^2 mod p
-        mpz_mul(c, b, b);
-        mpz_mod(c, c, p);
+        //update c = b
+        mpz_set(c, b);
 
         M = i;
     }
@@ -178,7 +176,17 @@ void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long
     size_t count;
     mpz_export(r, &count, 1, sizeof(unsigned long long), 0, 0, result);
 
-    mpz_clears(f, p, result, Q, tmp, z, c, x, t, b, NULL);
+    mpz_t verification;
+    mpz_init(verification);
+    mpz_powm_ui(verification, result, 2, p);
+
+    if (mpz_cmp(verification, f) == 0) {
+        printf("Verification succeeded: r^2 mod p == f\n");
+    } else {
+        printf("Verification failed: r^2 mod p != f\n");
+    }
+
+    mpz_clears(f, p, b1, result, Q, tmp, z, c, x, t, b, verification, NULL);
 }
 
 int main(){
@@ -188,17 +196,17 @@ int main(){
     //unsigned long long p1[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
     //unsigned long long p2[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
 
-    unsigned long long p1[SIZE] = {0, 0, 0, 9};
+    //unsigned long long p1[SIZE] = {0, 0, 0, 9};
     //FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
-    //unsigned long long p2[SIZE] = {0xFFFFFFFF00000001, 0x0000000000000000, 0x00000000FFFFFFFF, 0xFFFFFFFFFFFFFFFF};
+    unsigned long long p2[SIZE] = {0xFFFFFFFF00000001, 0x0000000000000000, 0x00000000FFFFFFFF, 0xFFFFFFFFFFFFFFFF};
     //unsigned long long p2[SIZE] = {0xFFFFFFFFFFFFFFFF, 0x00000000FFFFFFFF, 0x0000000000000000, 0xFFFFFFFF00000001};
     //unsigned long long p2[SIZE] = {0x1900000000000067, 0x175700000000004d, 0xe101d68000000016, 0x2523648240000002};
     
     //unsigned long long p1[SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF};
-    //unsigned long long p2[SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF};
+    unsigned long long p1[SIZE] = {0x00000000FFFFFFFE, 0xFFFFFFFF00000001, 0x0000000000000000, 0x0000000000000000};
     //unsigned long long p2[SIZE] = {0, 0, 0, 0};
     //unsigned long long p2[SIZE] = {2, 0, 0, 0};
-    unsigned long long p2[SIZE] = {0, 0, 0, 13};
+    //unsigned long long p2[SIZE] = {0, 0, 0, 13};
 
     unsigned long long result[R_SIZE] = {0};
 
