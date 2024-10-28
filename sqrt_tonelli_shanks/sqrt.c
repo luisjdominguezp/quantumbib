@@ -1,10 +1,11 @@
-#include <math.h>
+#include <signal.h>
 #include <stdio.h>
 #include <gmp.h>
 #include <inttypes.h>
 #include <x86intrin.h>
 
 #define SIZE 4
+#define P_SIZE 5
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
 #define NTEST 100000
@@ -12,111 +13,113 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 
-int legendre(mpz_t a, mpz_t p){
-    int k = 1;
-    mpz_t A, B, temp;
-    mpz_init_set(A, a);
-    mpz_init_set(B, p);
-    mpz_init(temp);
+int verify_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]) {
+    mpz_t n_mpz, r_mpz, p_mpz, temp;
+    mpz_inits(n_mpz, r_mpz, p_mpz, temp, NULL);
+    
+    mpz_import(n_mpz, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
+    mpz_import(p_mpz, P_SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
+    mpz_import(r_mpz, R_SIZE, -1, sizeof(unsigned long long), 0, 0, r);
 
-    while (mpz_cmp_ui(B, 1) != 0) {
-        if (mpz_cmp_ui(A, 0) == 0) {
-            mpz_clears(A, B, temp, NULL);
-            return 0;
-        }
-
-        int v = 0;
-        while (mpz_even_p(A)) {
-            v += 1;
-            mpz_fdiv_q_2exp(A, A, 1); // A = A / 2
-        }
-
-        // t0 = B mod 8
-        unsigned long t0 = mpz_fdiv_ui(B, 8);
-
-        if ((v % 2 == 1) && (t0 == 3 || t0 == 5)) {
-            k = -k;
-        }
-
-        // A_mod_4 = A mod 4
-        unsigned long A_mod_4 = mpz_fdiv_ui(A, 4);
-        // B_mod_4 = B mod 4
-        unsigned long B_mod_4 = mpz_fdiv_ui(B, 4);
-
-        if ((A_mod_4 == 3) && (B_mod_4 == 3)) {
-            k = -k;
-        }
-
-        mpz_t r;
-        mpz_init_set(r, A);
-        mpz_mod(A, B, r);
-        mpz_set(B, r);
-
-        mpz_clear(r);
+    gmp_printf("Value of n_mpz: %Zd\n", n_mpz);
+    gmp_printf("Value of p_mpz: %ZX\n", p_mpz);
+    gmp_printf("Value of r_mpz: %ZX\n", r_mpz);
+    
+    mpz_powm_ui(temp, r_mpz, 2, p_mpz);
+    
+    int result = (mpz_cmp(temp, n_mpz) == 0);
+    
+    if (result) {
+        printf("Square root verification PASSED\n");
+        printf("r^2 mod p equals n mod p\n");
+    } else {
+        printf("Square root verification FAILED\n");
+        gmp_printf("r^2 mod p = %Zx\n", r_mpz);
+        gmp_printf("n mod p = %Zx\n", temp);
     }
-
-    if (mpz_cmp_ui(B, 1) > 0) {
-        k = 0;
-    }
-
-    mpz_clears(A, B, temp, NULL);
-
-    return k;
+    
+    mpz_clears(n_mpz, r_mpz, p_mpz, temp, NULL);
+    return result;
 }
 
 void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]) {
-    mpz_t N, p, f, result, x_expected, p_minus_r, exp;
-    mpz_inits(N, p, f, result, x_expected, p_minus_r, exp, NULL);
+        mpz_t p, n, r_mpz, q, s, z, c, t, m, b, temp, exponent;
+    unsigned long e;
+    int found = 0;
 
-    mpz_import(N, R_SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
-    mpz_import(p, SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
+    mpz_inits(p, n, r_mpz, q, s, z, c, t, m, b, temp, exponent, NULL);
 
-    mpz_mod(f, N, p);
+    mpz_import(n, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
+    mpz_import(p, P_SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
 
-    gmp_printf("Value of N: %ZX\n", N);
-    gmp_printf("Value of modulus p: %ZX\n", p);
-    gmp_printf("Value of f (N mod p): %ZX\n", f);
+    gmp_printf("Value of p1: %Zd\n", n);
+    gmp_printf("Value of p2: %ZX\n", p);
+    if (mpz_legendre(n, p) != 1) {
+        gmp_printf("No square root exists.\n");
+        mpz_clears(p, n, r_mpz, q, s, z, c, t, m, b, temp, exponent, NULL);
+        return;
+    }
 
-    // Check if f is a quadratic residue modulo p
-    if (mpz_legendre(f, p) != 1) {
-        // No square root exists
-        mpz_set_ui(result, 0);
-        printf("No square root exists.\n");
-    } else {
-        // For p ≡ 3 mod 4, we can compute sqrt(f) as f^((p+1)/4) mod p
-        mpz_add_ui(exp, p, 1);  // exp = p + 1
-        mpz_fdiv_q_2exp(exp, exp, 2);  // exp = (p + 1) / 4
-        
-        gmp_printf("Exp: %ZX\n", exp);
-        // Compute result = f^{(p + 1) / 4} mod p
-        mpz_powm(result, f, exp, p);
-        gmp_printf("Result: %ZX\n", result);
-        // Verify that (result^2 mod p) == f
-        mpz_powm_ui(p_minus_r, result, 2, p);
-        if (mpz_cmp(p_minus_r, f) == 0) {
-            printf("Verification succeeded: (result)^2 mod p == f\n");
+    mpz_sub_ui(q, p, 1);  // q = p - 1
+    mpz_set_ui(s, 0);
+    while (mpz_even_p(q)) {
+        mpz_fdiv_q_2exp(q, q, 1);  // q = q / 2
+        mpz_add_ui(s, s, 1);       // s = s + 1
+    }
+
+    mpz_set_ui(z, 2);
+    while (!found) {
+        if (mpz_legendre(z, p) == -1) {
+            found = 1;
         } else {
-            printf("Verification failed: (result)^2 mod p != f\n");
-            mpz_set_ui(result, 0);
-        }
-
-        mpz_sub(p_minus_r, p, result);
-        gmp_printf("Result: %ZX\n", result);
-        gmp_printf("p-r: %ZX\n", p_minus_r);
-
-        if (mpz_cmp(result, x_expected) == 0) {
-            printf("Computed square root equals the expected x.\n");
-        } else if (mpz_cmp(p_minus_r, x_expected) == 0) {
-            printf("p - result equals the expected x.\n");
-        } else {
-            printf("Neither result nor p - result equals the expected x.\n");
+            mpz_add_ui(z, z, 1);
         }
     }
 
-    size_t count;
-    mpz_export(r, &count, 1, sizeof(unsigned long long), 0, 0, result);
+    mpz_powm(c, z, q, p);
 
-    mpz_clears(N, p, f, result, x_expected, p_minus_r, exp, NULL);
+    mpz_add_ui(temp, q, 1);                   // temp = Q + 1
+    mpz_fdiv_q_2exp(exponent, temp, 1);       // exponent = (Q + 1) / 2
+
+    mpz_powm(r_mpz, n, exponent, p);
+
+    mpz_powm(t, n, q, p);
+
+    mpz_set(m, s);
+
+    while (mpz_cmp_ui(t, 1) != 0) {
+        mpz_set(temp, t);
+        e = 0;
+        while (mpz_cmp_ui(temp, 1) != 0 && e < mpz_get_ui(m)) {
+            mpz_powm_ui(temp, temp, 2, p);
+            e++;
+        }
+        if (e >= mpz_get_ui(m)) {
+            gmp_printf("No square root exists.\n");
+            mpz_clears(p, n, r_mpz, q, s, z, c, t, m, b, temp, exponent, NULL);
+            return;
+        }
+
+        mpz_sub_ui(temp, m, e + 1);                  
+        mpz_ui_pow_ui(temp, 2, mpz_get_ui(temp));
+        mpz_powm(b, c, temp, p);
+
+        mpz_mul(r_mpz, r_mpz, b);
+        mpz_mod(r_mpz, r_mpz, p);
+
+        mpz_powm_ui(b, b, 2, p);  // b = b^2 mod p
+        mpz_mul(t, t, b);
+        mpz_mod(t, t, p);
+
+        mpz_set(c, b);
+
+        mpz_set_ui(m, e);
+    }
+
+    size_t count;
+    mpz_export(r, &count, -1, sizeof(unsigned long long), 0, 0, r_mpz);
+    mpz_clears(p, n, r_mpz, q, s, z, c, t, m, b, temp, exponent, NULL);
+
 }
 
 
@@ -127,20 +130,8 @@ int main(){
     //unsigned long long p1[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
     //unsigned long long p2[SIZE] = {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF};
 
-    //unsigned long long p1[SIZE] = {0, 0, 0, 9};
-    //FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
-    unsigned long long p1[R_SIZE] = {0xFFFFFFFF00000003, 0xFFFFFFFD00000004, 0x0000000200000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000, 0x0000000000000000};
-    //unsigned long long p2[SIZE] = {0xFFFFFFFF00000001, 0x0000000000000000, 0x00000000FFFFFFFF, 0xFFFFFFFFFFFFFFFF};
-    unsigned long long p2[R_SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFE, 0xBAAEDCE6AF48A03B, 0xBFD25E8CD0364141};
-    //unsigned long long p2[SIZE] = {0xFFFFFFFFFFFFFFFF, 0x00000000FFFFFFFF, 0x0000000000000000, 0xFFFFFFFF00000001};
-    //unsigned long long p2[SIZE] = {0x1900000000000067, 0x175700000000004d, 0xe101d68000000016, 0x2523648240000002};
-    
-    //unsigned long long p1[SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF};
-    //unsigned long long p1[SIZE] = {0x00000000FFFFFFFE, 0xFFFFFFFF00000001, 0x0000000000000000, 0x0000000000000000};
-    //unsigned long long p2[SIZE] = {0, 0, 0, 0};
-    //unsigned long long p2[SIZE] = {2, 0, 0, 0};
-    //unsigned long long p2[SIZE] = {0, 0, 0, 13};
-
+    unsigned long long p1[SIZE] = {0, 0, 0, 4};
+    unsigned long long p2[P_SIZE] = {0xA7081AEA3BDBF56E, 0x0AE5736BE1124F8D, 0xC7CE6E75FAC521DD, 0x9F6A6B593208CDF6, 0x0E83615E354157D9};
     unsigned long long result[R_SIZE] = {0};
 
 
@@ -155,7 +146,7 @@ int main(){
     if (result[0] == (unsigned long long)-1){
         printf("No square root exists.\n");
     } else {
-        for(int i = 0;i<R_SIZE;i++){
+        for(int i = R_SIZE -1;i>=0;i--){
         printf("%016llX\n", result[i]);
         }
     }
@@ -163,5 +154,14 @@ int main(){
 
     printf("Total = %f CPU cycles\n", (float)(end - start) / NTEST);
 
+    // Call the verification function
+    printf("Verifying computed square root...\n");
+    int verification_result = verify_sqrt(p1, p2, result);
+    if (verification_result) {
+        printf("Verification passed: Computed square root is correct.\n");
+    } else {
+        printf("Verification failed: Computed square root is incorrect.\n");
+    }
     return 0;
+
 }
