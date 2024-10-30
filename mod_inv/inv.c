@@ -93,7 +93,7 @@ int main(){
 
     //unsigned long long p1[SIZE] = {0, 0, 0, 4};
     //unsigned long long p2[P_SIZE] = {0xA7081AEA3BDBF56E, 0x0AE5736BE1124F8D, 0xC7CE6E75FAC521DD, 0x9F6A6B593208CDF6, 0x0E83615E354157D9};
-    unsigned long long result[R_SIZE] = {0};
+    unsigned long long result[SIZE] = {0};
 
 
     printf("Warming up the cpu.\n");
@@ -108,7 +108,7 @@ int main(){
         printf("Modular inverse does not exist for these values.\n");
     } else {
         printf("Modular inverse is:\n");
-        for(int i = R_SIZE -1;i>=0;i--){
+        for(int i=0;i<SIZE;i++){
         printf("%016llX\n", result[i]);
         }
     }
