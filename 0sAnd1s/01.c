@@ -11,12 +11,12 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 
-int check0s(unsigned long long p1[], unsigned long long p2[]){
+int check0s(unsigned long long p[]){
 
 }
 
-int check1s(unsigned long long p1[], unsigned long long p2[]){
-
+int check1s(unsigned long long p[]){
+    
 }
 
 int main(){
@@ -38,8 +38,10 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    check0s(p1, p2);
-    check1s(p1, p2);
+    check0s(p1);
+    check0s(p2);
+    check1s(p1);
+    check1s(p2);
     end = __rdtsc();
 
     printf("Total = %f CPU cycles\n", (float)(end - start) / NTEST);
