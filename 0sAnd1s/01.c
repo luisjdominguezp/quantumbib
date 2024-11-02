@@ -17,18 +17,32 @@ int check0s(unsigned long long p[]){
     return ((p[3] & mask) == 0) ? 1 : 0;
 }
 */
-
+/*
 int check0s(unsigned long long p[]){
     unsigned long long lsb = p[3] & 1ULL;
     printf("In check0s: p[3] = %llu, p[3] & 1ULL = %llu\n", p[3], lsb);
     return (lsb == 0ULL) ? 1 : 0;
 }
+*/
+
+int check0s(unsigned long long p[]){
+    unsigned long long mask = 1ULL;
+    printf("p[3] = %llu - mask = %llu\n", p[3], mask);
+    return ((p[3] & mask) == 0ULL) ? 1 : 0;
+}
 
 
-
+/*
 int check1s(unsigned long long p[]){
     unsigned long long mask = 0xFFFFFFFFFFFFFFFF;
     return ((p[3] & mask) == 1) ? 1 : 0;
+}
+*/
+
+int check1s(unsigned long long p[]){
+    unsigned long long mask = 1ULL;
+    printf("p[3] = %llu - mask = %llu\n", p[3], mask);
+    return((p[3] & mask) == 1ULL) ? 1 : 0;
 }
 
 int main(){
