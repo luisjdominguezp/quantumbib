@@ -27,7 +27,7 @@ void q_random(unsigned long long p[]) {
     
     gmp_printf("Random number generated: %ZX\n", rand_num);
     size_t count;
-    mpz_export(p, &count, -1, sizeof(unsigned long long), 0, 0, rand_num);
+    mpz_export(p, &count, 1, sizeof(unsigned long long), 0, 0, rand_num);
 
     gmp_randclear(state);
     mpz_clear(rand_num);
