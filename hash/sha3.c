@@ -1,7 +1,14 @@
 #include <openssl/evp.h>
 #include <openssl/types.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <x86intrin.h>
 #include <string.h>
+
+#pragma intrinsic(__rdtsc)
+#define NTEST 100000
+
+void measured_function(volatile int *var) {(*var) = 1; }
 
 void hash_sha3_256(const unsigned char *data, size_t len, unsigned char *digest){
     EVP_MD_CTX *ctx = EVP_MD_CTX_new();
@@ -32,10 +39,18 @@ void hash_sha3_256(const unsigned char *data, size_t len, unsigned char *digest)
 }
 
 int main() {
-    const char *message = "This is SHA3-256\n";
+    uint64_t start, end;
+    int variable = 0;
+    const char *message = "message to be hashed\n";
     //256 bits / 8 = 32 bytes
     unsigned char digest[32];
 
+    printf("Warming up the cpu.\n");
+    for (int i = 0;i<NTEST;i++){
+        measured_function(&variable);
+    }
+    printf("Calculating Result...\n");
+    start = __rdtsc();
     hash_sha3_256((const unsigned char *)message, strlen(message), digest);
     printf("SHA3-256 Digest: ");
     for(int i=0;i<32;i++){
@@ -44,5 +59,9 @@ int main() {
     }
     printf("\n");
 
+    end = __rdtsc();
+
+    printf("Total = %f CPU cycles\n", (float)(end - start) / NTEST);
     return 0;
+
 }
