@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include <unistd.h>
 #include <gmp.h>
 #include <inttypes.h>
 #include <x86intrin.h>
@@ -12,16 +13,9 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 
-void q_random(unsigned long long p[]) {
+void q_random(unsigned long long p[], gmp_randstate_t state) {
     mpz_t rand_num;
     mpz_init(rand_num);
-
-    gmp_randstate_t state;
-    gmp_randinit_default(state);
-
-    unsigned long seed;
-    seed = (unsigned long)time(NULL);
-    gmp_randseed_ui(state, seed);
 
     mpz_urandomb(rand_num, state, 64 * SIZE);
     
@@ -29,17 +23,8 @@ void q_random(unsigned long long p[]) {
     size_t count;
     mpz_export(p, &count, 1, sizeof(unsigned long long), 0, 0, rand_num);
 
-    gmp_randclear(state);
     mpz_clear(rand_num);
 }
-/*
-void q_random(unsigned long long p[]){
-    for(int i = 0;i<SIZE;i++){
-        //rand = p[i];
-    }
-
-}
-*/
 
 int main(){
     uint64_t start, end;
@@ -52,6 +37,12 @@ int main(){
     //unsigned long long p1[SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFE};
     //unsigned long long p2[SIZE] = {0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF};
 
+    gmp_randstate_t state;
+    gmp_randinit_default(state);
+
+    unsigned long long seed = (unsigned long)time(NULL);
+    gmp_randseed_ui(state, seed);
+
     printf("Warming up the cpu.\n");
     for (int i = 0;i<NTEST;i++){
         measured_function(&variable);
@@ -59,8 +50,9 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    q_random(p1);
-    q_random(p2);
+    q_random(p1, state);
+    q_random(p2, state);
+    gmp_randclear(state);
     for(int i =0;i<SIZE;i++){    
         printf("Content of p1: %016llX\n", p1[i]);
     }
