@@ -32,7 +32,7 @@ void hash_sha3_256(const unsigned char *data, size_t len, unsigned char *digest)
 }
 
 int main() {
-    const char *message = "------ This is SHA3-256 ------\n";
+    const char *message = "This is SHA3-256\n";
     //256 bits / 8 = 32 bytes
     unsigned char digest[32];
 
