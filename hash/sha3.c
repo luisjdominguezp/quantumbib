@@ -51,7 +51,9 @@ int main() {
     }
     printf("Calculating Result...\n");
     start = __rdtsc();
-    hash_sha3_256((const unsigned char *)message, strlen(message), digest);
+    for(int i =0;i<NTEST;i++){
+        hash_sha3_256((const unsigned char *)message, strlen(message), digest);
+    }
     printf("SHA3-256 Digest: ");
     for(int i=0;i<32;i++){
         printf("%02X", digest[i]);
