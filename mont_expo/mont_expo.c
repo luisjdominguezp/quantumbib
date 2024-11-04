@@ -64,8 +64,8 @@ void montgomery_exp(unsigned long long p1[], unsigned long long p2[], unsigned l
     }
     mpz_import(base, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
     mpz_import(expo, SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
-    gmp_printf("Value of base: %ZX\n", base);
-    gmp_printf("Value of expo: %ZX\n", expo);
+    //gmp_printf("Value of base: %ZX\n", base);
+    //gmp_printf("Value of expo: %ZX\n", expo);
     mpz_mul(mont_base, base, R);
     mpz_mod(mont_base, mont_base, m);
     
@@ -77,7 +77,6 @@ void montgomery_exp(unsigned long long p1[], unsigned long long p2[], unsigned l
 
     size_t bits = mpz_sizeinbase(expo, 2);
     for(ssize_t i = bits-1;i>=0;i--){
-        //will finish after class
         unsigned long long temp1[SIZE] = {0};
         unsigned long long temp2[SIZE] = {0};
         mpz_export(temp1, NULL, 1, sizeof(unsigned long long), 0, 0, mont_res);
@@ -134,9 +133,12 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    montgomery_exp(p1, p2, result);
+    for(int i=0;i<NTEST;i++){
+        montgomery_exp(p1, p2, result);
+    }
+    //montgomery_exp(p1, p2, result);
     for(int i = 0;i<R_SIZE;i++){
-        printf("%016lld\n", result[i]);
+        printf("%016llX\n", result[i]);
     }
     end = __rdtsc();
 

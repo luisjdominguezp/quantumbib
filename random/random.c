@@ -9,7 +9,6 @@
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
 #define NTEST 100000
-#define BIT_LIMIT 64
 
 void measured_function(volatile int *var) {(*var) = 1; }
 
@@ -19,7 +18,7 @@ void q_random(unsigned long long p[], gmp_randstate_t state) {
 
     mpz_urandomb(rand_num, state, 64 * SIZE);
     
-    gmp_printf("Random number generated: %ZX\n", rand_num);
+    //gmp_printf("Random number generated: %ZX\n", rand_num);
     size_t count;
     mpz_export(p, &count, 1, sizeof(unsigned long long), 0, 0, rand_num);
 
@@ -50,7 +49,10 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    q_random(p1, state);
+    for(int i =0;i<NTEST;i++){
+        q_random(p1, state);
+    }
+    //q_random(p1, state);
     q_random(p2, state);
     gmp_randclear(state);
     for(int i =0;i<SIZE;i++){    
@@ -60,6 +62,7 @@ int main(){
     for(int i =0;i<SIZE;i++){    
         printf("Content of p2: %016llX\n", p2[i]);
     }
+
     end = __rdtsc();
 
     printf("Total = %f CPU cycles\n", (float)(end - start) / NTEST);

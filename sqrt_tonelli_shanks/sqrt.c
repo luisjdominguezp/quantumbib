@@ -21,9 +21,9 @@ int verify_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long 
     mpz_import(p_mpz, P_SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
     mpz_import(r_mpz, R_SIZE, -1, sizeof(unsigned long long), 0, 0, r);
 
-    gmp_printf("Value of n_mpz: %Zd\n", n_mpz);
-    gmp_printf("Value of p_mpz: %ZX\n", p_mpz);
-    gmp_printf("Value of r_mpz: %ZX\n", r_mpz);
+    //gmp_printf("Value of n_mpz: %Zd\n", n_mpz);
+    //gmp_printf("Value of p_mpz: %ZX\n", p_mpz);
+    //gmp_printf("Value of r_mpz: %ZX\n", r_mpz);
     
     mpz_powm_ui(temp, r_mpz, 2, p_mpz);
     
@@ -34,8 +34,8 @@ int verify_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long 
         printf("r^2 mod p equals n mod p\n");
     } else {
         printf("Square root verification FAILED\n");
-        gmp_printf("r^2 mod p = %Zx\n", r_mpz);
-        gmp_printf("n mod p = %Zx\n", temp);
+        //gmp_printf("r^2 mod p = %Zx\n", r_mpz);
+        //gmp_printf("n mod p = %Zx\n", temp);
     }
     
     mpz_clears(n_mpz, r_mpz, p_mpz, temp, NULL);
@@ -52,10 +52,10 @@ void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long
     mpz_import(n, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
     mpz_import(p, P_SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
 
-    gmp_printf("Value of p1: %Zd\n", n);
-    gmp_printf("Value of p2: %ZX\n", p);
+    //gmp_printf("Value of p1: %Zd\n", n);
+    //gmp_printf("Value of p2: %ZX\n", p);
     if (mpz_legendre(n, p) != 1) {
-        gmp_printf("No square root exists.\n");
+        //gmp_printf("No square root exists.\n");
         mpz_clears(p, n, r_mpz, q, s, z, c, t, m, b, temp, exponent, NULL);
         return;
     }
@@ -95,7 +95,7 @@ void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long
             e++;
         }
         if (e >= mpz_get_ui(m)) {
-            gmp_printf("No square root exists.\n");
+            //gmp_printf("No square root exists.\n");
             mpz_clears(p, n, r_mpz, q, s, z, c, t, m, b, temp, exponent, NULL);
             return;
         }
@@ -142,7 +142,9 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    t_sqrt(p1, p2, result);
+    for(int i=0;i<NTEST;i++){
+        t_sqrt(p1, p2, result);
+    }
     if (result[0] == (unsigned long long)-1){
         printf("No square root exists.\n");
     } else {

@@ -18,8 +18,8 @@ int inv_mod(unsigned long long p1[], unsigned long long p2[], unsigned long long
     mpz_import(a, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
     mpz_import(n, SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
 
-    gmp_printf("Value of p1: %ZX\n", a);
-    gmp_printf("Value of p2: %ZX\n", n);
+    //gmp_printf("Value of p1: %ZX\n", a);
+    //gmp_printf("Value of p2: %ZX\n", n);
 
     mpz_set(u, a);
     mpz_set(v, n);
@@ -102,8 +102,12 @@ int main(){
     }
 
     printf("Calculating Result...\n");
+    int status = 0;
     start = __rdtsc();
-    int status = inv_mod(p1, p2, result);
+    for(int i =0;i<NTEST;i++){
+        status = inv_mod(p1, p2, result);
+    }
+    //int status = inv_mod(p1, p2, result);
     if (status != 1) {
         printf("Modular inverse does not exist for these values.\n");
     } else {

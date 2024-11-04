@@ -84,7 +84,9 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    montgomery_pr(p1, p2, result);
+    for(int i=0;i<NTEST;i++){
+        montgomery_pr(p1, p2, result);
+    }
     for(int i = 0;i<R_SIZE;i++){
         printf("%016llX\n", result[i]);
     }

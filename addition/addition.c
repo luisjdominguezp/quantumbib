@@ -10,9 +10,9 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 
-void add_with_carry(long long p1[], long long p2[], long long r[]){
+void add_with_carry(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
     long long carry = 0;
-    for(int i = 0; i<SIZE;i++){
+    for(int i=0; i<SIZE;i++){
         //I'm carrying any leftover overflow to the second number 
         //and then to the first number
         unsigned long long tmpSum = p2[i] + carry;
@@ -40,9 +40,11 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    add_with_carry(p1, p2, result);
+    for(int i=0;i<NTEST;i++){
+        add_with_carry(p1, p2, result);
+    }
     for(int i = 0;i<SIZE;i++){
-        printf("%X\n", result[i]);
+        printf("%016llX\n", result[i]);
     }
     end = __rdtsc();
 

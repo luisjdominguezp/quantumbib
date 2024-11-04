@@ -9,7 +9,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 
-void sub_with_borrow(long long p1[], long long p2[], long long r[]){
+void sub_with_borrow(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
     long long borrow = 0;
     for(int i = 0;i<SIZE;i++){
         //difference
@@ -37,9 +37,11 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    sub_with_borrow(p1, p2, result);
+    for(int i=0;i<NTEST;i++){
+        sub_with_borrow(p1, p2, result);
+    }
     for(int i = 0;i<SIZE;i++){
-        printf("%X\n", result[i]);
+        printf("%016llX\n", result[i]);
     }
     end = __rdtsc();
 

@@ -23,22 +23,22 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     //p being modulus
     //imports p2[] into a number
     mpz_import(p, SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
-    gmp_printf("Value of imported p: %Zx\n", p);
+    //gmp_printf("Value of imported p: %Zx\n", p);
     //b_b^2*b_k
     mpz_pow_ui(big_b_pow, b_b, 2*b_k);
     //mu = b_b^2*b_k / p
     mpz_fdiv_q(mu, big_b_pow, p);
-    gmp_printf("Value of mu: %Zx\n", mu);
+    //gmp_printf("Value of mu: %Zx\n", mu);
     //b_mask = 2^(b_w*(b_k+1))-1
     mpz_ui_pow_ui(b_mask, 2, b_w * (b_k + 1));
     mpz_sub_ui(b_mask, b_mask, 1);
-    gmp_printf("Value of b_mask: %Zx\n", b_mask);
+    //gmp_printf("Value of b_mask: %Zx\n", b_mask);
     //e^384
     mp_bitcnt_t exponent = 64 * (b_k + 1);
-    gmp_printf("Value of exponent: %lu\n", exponent);
+    //gmp_printf("Value of exponent: %lu\n", exponent);
     //b_b^(b_k+1)
     mpz_pow_ui(b_expo, b_b, b_k + 1);
-    gmp_printf("Value of b_expo: %Zx\n", b_expo);
+    //gmp_printf("Value of b_expo: %Zx\n", b_expo);
     //__uint128_t qh = 0;
     //[7,6,5,4,3,2,1,0]
     //[0,0,0,0,0,0,7,6]
@@ -89,7 +89,7 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     mpz_mul(temp2, temp, mu);
     //temp2 >> b_w * (b_k + 1)
     mpz_fdiv_q_2exp(qh, temp2, b_w * (b_k + 1));
-    gmp_printf("Value of qh: %Zx\n", qh);
+    //gmp_printf("Value of qh: %Zx\n", qh);
     //mod(z, b_expo)
     mpz_mod_2exp(rsTemp, z, exponent);
     //mod(mul(qh, p), b_expo)
@@ -137,7 +137,9 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    reduc(p1, p2, result);
+    for(int i=0;i<NTEST;i++){
+        reduc(p1, p2, result);
+    }
     printf("Result is: ");
     for(int i = SIZE;i>=0;i--){
         printf("%016llX", result[i]);

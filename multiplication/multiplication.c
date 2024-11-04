@@ -10,14 +10,16 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 
-
 __int128 mult128(__int128 p1, __int128 p2){
     return p1*p2;
 }
 
 
 void mult(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
-    int i,j;
+    int i,j = 0;
+    for(int i=0;i<R_SIZE;i++){
+        r[i] = 0;
+    }
     __int128 temp = 0;
     for(i = 0;i<SIZE;i++){
         uint64_t carry = 0;
@@ -56,6 +58,10 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
+    for(int i =0;i<NTEST;i++){
+        mult(p1, p2, result);
+    }
+
     mult(p1, p2, result);
     for(int i = 0;i<R_SIZE;i++){
         printf("%016llX\n", result[i]);
