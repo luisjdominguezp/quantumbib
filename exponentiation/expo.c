@@ -17,8 +17,8 @@ void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r
     mpz_inits(base, expo, res, NULL);
     mpz_import(base, SIZE, -1, sizeof(unsigned long long), 0, 0, p1);
     mpz_import(expo, SIZE, -1, sizeof(unsigned long long), 0, 0, p2);
-    gmp_printf("Value of base: %ZX\n", base);
-    gmp_printf("Value of expo: %ZX\n", expo);
+    //gmp_printf("Value of base: %ZX\n", base);
+    //gmp_printf("Value of expo: %ZX\n", expo);
     //check to see if expo is 0, 1 or 2
     /*
     if(mpz_probab_prime_p(expo, 25)) {
@@ -55,7 +55,7 @@ void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r
             //g = f
             mpz_set(res, base);
                 for(ssize_t i=bits-2;i>=0;i--){
-                printf("Processing bit %zd\n", i);
+                //printf("Processing bit %zd\n", i);
                 //square
                 mpz_mul(res, res, res);
                 if(mpz_tstbit(expo, i)){
@@ -70,7 +70,7 @@ void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r
     }
 
     mpz_export(r, &count, 1, sizeof(unsigned long long), 0, 0, res);
-    printf("Number of blocks exported: %ld\n", count);
+    //printf("Number of blocks exported: %ld\n", count);
     mpz_clears(base, expo, res, NULL);
     
 
@@ -103,7 +103,10 @@ int main(){
 
     printf("Calculating Result...\n");
     start = __rdtsc();
-    expo(p1, p2, result);
+    for(int i =0;i<NTEST;i++){
+        expo(p1, p2, result);
+    }
+    //expo(p1, p2, result);
     for(int i = 0;i<SIZE;i++){
         printf("%016llX\n", result[i]);
     }
