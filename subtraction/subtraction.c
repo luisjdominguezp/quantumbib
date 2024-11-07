@@ -1,17 +1,17 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <x86intrin.h>
-
+/*
 #define SIZE 4
 #pragma intrinsic(__rdtsc)
 #define NTEST 100000
-
+*/
 /*
 void measured_function(volatile int *var) {(*var) = 1; }
 */
 void sub_with_borrow(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size){
     long long borrow = 0;
-    for(int i = 0;i<SIZE;i++){
+    for(int i = 0;i<size;i++){
         //difference
         r[i] = p1[i] - p2[i] - borrow;
         borrow = (p1[i] < p2[i] + borrow);

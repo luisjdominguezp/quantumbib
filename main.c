@@ -15,7 +15,7 @@
 
 #define SIZE 4
 #define R_SIZE 8
-#pragma instrinic(__rdstc)
+#pragma instrinic(__rdtsc)
 #define NTEST 10000
 #define bw 64
 
@@ -42,14 +42,14 @@ int main(){
 
         if(choice == 1){
             for(int i = 0; i < SIZE; i++){
-                printf("Enter your number in limbs of 64 bits: ", i+1);
+                printf("Enter your %dth number in limbs of 64 bits: ", i+1);
                 if(scanf("%llX", &p1[i]) != 1){
                     printf("Invalid input. Exiting.\n");
                     return 1;
                 }
             }
             for(int i = 0; i < SIZE; i++){
-                printf("Enter your number in limbs of 64 bits: ", i+1);
+                printf("Enter your %dth number in limbs of 64 bits: ", i+1);
                 if(scanf("%llX", &p2[i]) != 1){
                     printf("Invalid input. Exiting.\n");
                     return 1;
@@ -115,7 +115,7 @@ int main(){
                 break;
             case 4:
                 printf("Starting Barrett reduction of these 2 numbers...\n");
-                reduc(p1, p2, result, SIZE, R_SIZE);
+                reduc(p1, p2, result, SIZE, R_SIZE, bw);
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }

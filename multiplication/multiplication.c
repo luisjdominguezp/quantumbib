@@ -15,7 +15,7 @@ __int128 mult128(__int128 p1, __int128 p2){
 }
 
 
-void mult(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], size_t size, size_t r_size){
+void mult(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int r_size){
     int i,j = 0;
     for(int i=0;i<size;i++){
         r[i] = 0;

@@ -3,15 +3,16 @@
 #include <gmp.h>
 #include <inttypes.h>
 #include <x86intrin.h>
-
+/*
 #define SIZE 4
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
 #define NTEST 100000
+*/
 /*
 void measured_function(volatile int *var) {(*var) = 1; }
 */
-void q_random(unsigned long long p[], gmp_randstate_t state, size_t size) {
+void q_random(unsigned long long p[], gmp_randstate_t state, int size) {
     mpz_t rand_num;
     mpz_init(rand_num);
 

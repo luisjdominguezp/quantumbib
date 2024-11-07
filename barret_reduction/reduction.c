@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <stdio.h>
 #include <inttypes.h>
 #include <x86intrin.h>
@@ -12,7 +11,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
-void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], size_t size, size_t r_size){
+void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int r_size, int b_w){
     //SIZE + 1
     int b_k = 5;
     //gmp library was imported to handle big variables such as b_b, mu, b_mask, b_expo

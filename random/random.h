@@ -4,6 +4,6 @@
 #include <stdio.h>
 #include <gmp.h>
 
-void q_random(unsigned long long p[], gmp_randstate_t state, size_t size);
+void q_random(unsigned long long p[], gmp_randstate_t state, int size);
 
 #endif // RANDOM_H

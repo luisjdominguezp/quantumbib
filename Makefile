@@ -4,7 +4,7 @@ CC = gcc
 CFLAGS = -O3 -march=native -Wall -Wextra
 LDFLAGS = -lgmp -lssl -lcrypto
 
-SRCDIRS = addition random
+SRCDIRS = addition subtraction multiplication barret_reduction random
 
 SRCS = $(wildcard $(addsuffix /*.c, $(SRCDIRS))) main.c
 
