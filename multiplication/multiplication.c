@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <x86intrin.h>
-
+/*
 #define SIZE 4
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
@@ -9,21 +9,21 @@
 
 
 void measured_function(volatile int *var) {(*var) = 1; }
-
+*/
 __int128 mult128(__int128 p1, __int128 p2){
     return p1*p2;
 }
 
 
-void mult(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
+void mult(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], size_t size, size_t r_size){
     int i,j = 0;
-    for(int i=0;i<R_SIZE;i++){
+    for(int i=0;i<size;i++){
         r[i] = 0;
     }
     __int128 temp = 0;
-    for(i = 0;i<SIZE;i++){
+    for(i = 0;i<r_size;i++){
         uint64_t carry = 0;
-        for(j = 0;j<SIZE;j++){
+        for(j = 0;j<size;j++){
             // (Carry,Sum) <- r[i+j] + a[j] * b[i] + Carry
             temp = mult128(p1[j], p2[i]);
             temp = r[i+j] + temp + carry;
@@ -34,7 +34,7 @@ void mult(unsigned long long p1[], unsigned long long p2[], unsigned long long r
         r[i+j+1] = carry;
     }
 }
-
+/*
 int main(){
     uint64_t start, end;
     int variable = 0;
@@ -72,3 +72,4 @@ int main(){
 
     return 0;
 }
+*/

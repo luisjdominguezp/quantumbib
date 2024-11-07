@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <time.h>
-#include <unistd.h>
 #include <gmp.h>
 #include <inttypes.h>
 #include <x86intrin.h>
@@ -9,14 +8,14 @@
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
 #define NTEST 100000
-
+/*
 void measured_function(volatile int *var) {(*var) = 1; }
-
-void q_random(unsigned long long p[], gmp_randstate_t state) {
+*/
+void q_random(unsigned long long p[], gmp_randstate_t state, size_t size) {
     mpz_t rand_num;
     mpz_init(rand_num);
 
-    mpz_urandomb(rand_num, state, 64 * SIZE);
+    mpz_urandomb(rand_num, state, 64 * size);
     
     //gmp_printf("Random number generated: %ZX\n", rand_num);
     size_t count;
@@ -24,7 +23,7 @@ void q_random(unsigned long long p[], gmp_randstate_t state) {
 
     mpz_clear(rand_num);
 }
-
+/*
 int main(){
     uint64_t start, end;
     int variable = 0;
@@ -50,10 +49,10 @@ int main(){
     printf("Calculating Result...\n");
     start = __rdtsc();
     for(int i =0;i<NTEST;i++){
-        q_random(p1, state);
+        q_random(p1, state, SIZE);
     }
     //q_random(p1, state);
-    q_random(p2, state);
+    q_random(p2, state, SIZE);
     gmp_randclear(state);
     for(int i =0;i<SIZE;i++){    
         printf("Content of p1: %016llX\n", p1[i]);
@@ -70,3 +69,4 @@ int main(){
     return 0;
 
 }
+*/

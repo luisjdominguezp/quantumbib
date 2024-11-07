@@ -1,8 +1,9 @@
+#include <cstddef>
 #include <stdio.h>
 #include <inttypes.h>
 #include <x86intrin.h>
 #include <gmp.h>
-
+/*
 #define SIZE 4
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
@@ -10,8 +11,8 @@
 #define b_w 64
 
 void measured_function(volatile int *var) {(*var) = 1; }
-
-void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
+*/
+void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], size_t size, size_t r_size){
     //SIZE + 1
     int b_k = 5;
     //gmp library was imported to handle big variables such as b_b, mu, b_mask, b_expo
@@ -22,7 +23,7 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     //b_b^(2*b_k) / p2
     //p being modulus
     //imports p2[] into a number
-    mpz_import(p, SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
+    mpz_import(p, size, 1, sizeof(unsigned long long), 0, 0, p2);
     //gmp_printf("Value of imported p: %Zx\n", p);
     //b_b^2*b_k
     mpz_pow_ui(big_b_pow, b_b, 2*b_k);
@@ -81,7 +82,7 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     */
     mpz_t z, qh, rs, temp, temp2, rsTemp, rsTemp2, rsT, mul2;
     mpz_inits(z, qh, rs, temp, temp2, rsTemp, rsTemp2, rsT, mul2, NULL);
-    mpz_import(z, R_SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
+    mpz_import(z, r_size, 1, sizeof(unsigned long long), 0, 0, p1);
     //qh = (((z >> b_w*(b_k-1)) * mu) >> (b_w * (b_k + 1)))
     //temp = z >> b_w*(b_k-1) 
     mpz_fdiv_q_2exp(temp, z, b_w * (b_k - 1));
@@ -114,7 +115,7 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     mpz_clears(b_b, p, big_b_pow, mu, b_expo, z, qh, temp, temp2, rsT, rsTemp, rsTemp2, mul2, NULL);
 
 }
-
+/*
 int main(){ 
     uint64_t start, end;
     int variable = 0;
@@ -150,3 +151,4 @@ int main(){
 
     return 0;
 }
+*/

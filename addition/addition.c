@@ -1,18 +1,19 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <x86intrin.h>
+#include "addition.h"
+/*
 #define SIZE 4
 
 #pragma intrinsic(__rdtsc)
 
 #define NTEST 100000
 
-
 void measured_function(volatile int *var) {(*var) = 1; }
-
-void add_with_carry(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
+*/
+void add_with_carry(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size){
     long long carry = 0;
-    for(int i=0; i<SIZE;i++){
+    for(int i=0; i<size;i++){
         //I'm carrying any leftover overflow to the second number 
         //and then to the first number
         unsigned long long tmpSum = p2[i] + carry;
@@ -23,7 +24,7 @@ void add_with_carry(unsigned long long p1[], unsigned long long p2[], unsigned l
     }
 
 } 
-
+/*
 int main(){
     uint64_t start, end;
     int variable = 0;
@@ -51,12 +52,11 @@ int main(){
     printf("Total = %f CPU cycles\n", (float)(end - start) / NTEST);
 
 
-    /*
     printf("Result: ");
     for(int i = 0;i<SIZE;i++){
         printf("%X ", result[i]);
     }
     printf("End of result.\n");
-    */
     return 0;
 }
+*/

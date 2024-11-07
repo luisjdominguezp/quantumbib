@@ -6,10 +6,10 @@
 #pragma intrinsic(__rdtsc)
 #define NTEST 100000
 
-
+/*
 void measured_function(volatile int *var) {(*var) = 1; }
-
-void sub_with_borrow(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
+*/
+void sub_with_borrow(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size){
     long long borrow = 0;
     for(int i = 0;i<SIZE;i++){
         //difference
@@ -17,7 +17,7 @@ void sub_with_borrow(unsigned long long p1[], unsigned long long p2[], unsigned 
         borrow = (p1[i] < p2[i] + borrow);
     }
 }
-
+/*
 int main(){
     uint64_t start, end;
     int variable = 0;
@@ -49,3 +49,4 @@ int main(){
 
     return 0;
 }
+*/
