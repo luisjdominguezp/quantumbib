@@ -3,7 +3,7 @@
 #include <gmp.h>
 #include <inttypes.h>
 #include <x86intrin.h>
-
+/*
 #define SIZE 4
 #define P_SIZE 5
 #define R_SIZE 8
@@ -12,14 +12,14 @@
 #define BIT_LIMIT 64
 
 void measured_function(volatile int *var) {(*var) = 1; }
-
-int verify_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]) {
+*/
+int verify_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int p_size, int r_size) {
     mpz_t n_mpz, r_mpz, p_mpz, temp;
     mpz_inits(n_mpz, r_mpz, p_mpz, temp, NULL);
     
-    mpz_import(n_mpz, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
-    mpz_import(p_mpz, P_SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
-    mpz_import(r_mpz, R_SIZE, -1, sizeof(unsigned long long), 0, 0, r);
+    mpz_import(n_mpz, size, 1, sizeof(unsigned long long), 0, 0, p1);
+    mpz_import(p_mpz, p_size, 1, sizeof(unsigned long long), 0, 0, p2);
+    mpz_import(r_mpz, r_size, -1, sizeof(unsigned long long), 0, 0, r);
 
     //gmp_printf("Value of n_mpz: %Zd\n", n_mpz);
     //gmp_printf("Value of p_mpz: %ZX\n", p_mpz);
@@ -42,15 +42,15 @@ int verify_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long 
     return result;
 }
 
-void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]) {
+void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int p_size) {
         mpz_t p, n, r_mpz, q, s, z, c, t, m, b, temp, exponent;
     unsigned long e;
     int found = 0;
 
     mpz_inits(p, n, r_mpz, q, s, z, c, t, m, b, temp, exponent, NULL);
 
-    mpz_import(n, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
-    mpz_import(p, P_SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
+    mpz_import(n, size, 1, sizeof(unsigned long long), 0, 0, p1);
+    mpz_import(p, p_size, 1, sizeof(unsigned long long), 0, 0, p2);
 
     //gmp_printf("Value of p1: %Zd\n", n);
     //gmp_printf("Value of p2: %ZX\n", p);
@@ -122,7 +122,7 @@ void t_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long
 
 }
 
-
+/*
 int main(){
     uint64_t start, end;
     int variable = 0;
@@ -167,3 +167,4 @@ int main(){
     return 0;
 
 }
+*/

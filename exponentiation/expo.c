@@ -2,7 +2,7 @@
 #include <gmp.h>
 #include <inttypes.h>
 #include <x86intrin.h>
-
+/*
 #define SIZE 4
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
@@ -10,13 +10,13 @@
 #define BIT_LIMIT 64
 
 void measured_function(volatile int *var) {(*var) = 1; }
-
-void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]){
+*/
+void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int r_size, int bit_limit){
     mpz_t base, expo, res;
     size_t count;
     mpz_inits(base, expo, res, NULL);
-    mpz_import(base, SIZE, -1, sizeof(unsigned long long), 0, 0, p1);
-    mpz_import(expo, SIZE, -1, sizeof(unsigned long long), 0, 0, p2);
+    mpz_import(base, size, -1, sizeof(unsigned long long), 0, 0, p1);
+    mpz_import(expo, size, -1, sizeof(unsigned long long), 0, 0, p2);
     //gmp_printf("Value of base: %ZX\n", base);
     //gmp_printf("Value of expo: %ZX\n", expo);
     //check to see if expo is 0, 1 or 2
@@ -29,7 +29,7 @@ void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r
     */
 
     size_t bits = mpz_sizeinbase(expo, 2);
-    if(bits <= BIT_LIMIT){
+    if(bits <= bit_limit){
         //check to see if expo is 0, 1 or 2
         if(mpz_cmp_ui(expo, 0) == 0){
             mpz_set_ui(res, 1);
@@ -75,7 +75,7 @@ void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r
     
 
 }
-
+/*
 int main(){
     uint64_t start, end;
     int variable = 0;
@@ -116,3 +116,4 @@ int main(){
 
     return 0;
 }
+*/

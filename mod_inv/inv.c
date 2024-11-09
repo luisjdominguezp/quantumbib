@@ -2,7 +2,7 @@
 #include <gmp.h>
 #include <inttypes.h>
 #include <x86intrin.h>
-
+/*
 #define SIZE 4
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
@@ -10,13 +10,13 @@
 #define BIT_LIMIT 64
 
 void measured_function(volatile int *var) {(*var) = 1; }
-
-int inv_mod(unsigned long long p1[], unsigned long long p2[], unsigned long long r[]) {
+*/
+int inv_mod(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size) {
     mpz_t a, n, u, v, x1, x2, temp, result_mpz;
     mpz_inits(a, n, u, v, x1, x2, temp, result_mpz, NULL);
 
-    mpz_import(a, SIZE, 1, sizeof(unsigned long long), 0, 0, p1);
-    mpz_import(n, SIZE, 1, sizeof(unsigned long long), 0, 0, p2);
+    mpz_import(a, size, 1, sizeof(unsigned long long), 0, 0, p1);
+    mpz_import(n, size, 1, sizeof(unsigned long long), 0, 0, p2);
 
     //gmp_printf("Value of p1: %ZX\n", a);
     //gmp_printf("Value of p2: %ZX\n", n);
@@ -83,7 +83,7 @@ int inv_mod(unsigned long long p1[], unsigned long long p2[], unsigned long long
     mpz_clears(a, n, u, v, x1, x2, temp, result_mpz, NULL);
     return 1;
 }
-
+/*
 int main(){
     uint64_t start, end;
     int variable = 0;
@@ -123,3 +123,4 @@ int main(){
     return 0;
 
 }
+*/

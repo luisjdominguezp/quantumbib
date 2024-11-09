@@ -1,8 +1,7 @@
 #include <stdio.h>
-#include <gmp.h>
 #include <inttypes.h>
 #include <x86intrin.h>
-
+/*
 #define SIZE 4
 #define R_SIZE 8
 #pragma intrinsic(__rdtsc)
@@ -10,13 +9,13 @@
 #define BIT_LIMIT 64
 
 void measured_function(volatile int *var) {(*var) = 1; }
-
-int check1s(unsigned long long p[]){
+*/
+int check1s(unsigned long long p[], int size){
     unsigned long long mask = 1ULL;
     //printf("p[SIZE-1] = %llX - mask = %llX\n", p[SIZE-1], mask);
-    return((p[SIZE-1] & mask) == 1ULL) ? 1 : 0;
+    return((p[size-1] & mask) == 1ULL) ? 1 : 0;
 }
-
+/*
 int main(){
     uint64_t start, end;
     int variable = 0;
@@ -43,17 +42,17 @@ int main(){
         res1 = resP1;
         res2 = resP2;
     }
-    /*for(int i=0;i<SIZE;i++){
+    for(int i=0;i<SIZE;i++){
         printf("Content of p1: %llX\n", p1[i]);
     }
-    */
-    /*printf("---------\n");
+    
+    printf("---------\n");
     for(int i=0;i<SIZE;i++){
         printf("Content of p2: %llX\n", p2[i]);
     }
     printf("Content of p1 @ LSB: %016llX\n", p1[SIZE-1]);
     printf("Content of p2 @ LSB: %016llX\n", p2[SIZE-1]);
-    */
+    
     //int resP1 = check0s(p1);
     //int resP2 = check0s(p2);
     //printf("Output of check0s for p1 and p2: %d - %d\n", resP1, resP2);
@@ -67,3 +66,4 @@ int main(){
     return 0;
 
 }
+*/
