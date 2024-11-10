@@ -1,4 +1,3 @@
-#include <iterator>
 #include <stdio.h>
 #include <gmp.h>
 #include <inttypes.h>
@@ -13,7 +12,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
-void montgomery_pr(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int r_size, int bit_limit, mpz_t mod_hex){
+void montgomery_pr(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int bit_limit, mpz_t mod_hex){
     // m * m'  = -1 mod R
     // aR mod R
     //Montgomery(a, b) = a*b*R

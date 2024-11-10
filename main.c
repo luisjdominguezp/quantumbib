@@ -139,28 +139,28 @@ int main(){
                 break;
             case 4:
                 printf("Starting Barrett reduction of these 2 numbers...\n");
-                reduc(p1, p2, result, SIZE, R_SIZE, bw);
+                reduc(p1, p_expo, result, SIZE, R_SIZE, bw);
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 break;
             case 5:
                 printf("Starting exponentiation of these 2 numbers...\n");
-                expo(p1, p2, result, SIZE, R_SIZE, BIT_LIMIT);
+                expo(p1, p_expo, result, SIZE, BIT_LIMIT);
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 break;
             case 6:
                 printf("Starting montgomery product of these 2 numbers...\n");
-                montgomery_pr(p1, p2, result, SIZE, R_SIZE, BIT_LIMIT, mod);
+                montgomery_pr(p1, p2, result, SIZE, BIT_LIMIT, mod);
                 for(int i=0;i<R_SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 break;
             case 7:
                 printf("Starting montgomery exponentiation of these 2 numbers...\n");
-                montgomery_e(p1, mont_expo, result, SIZE, R_SIZE, BIT_LIMIT, mod);
+                montgomery_exp(p1, mont_expo, result, SIZE, BIT_LIMIT, mod);
                 for(int i=0;i<R_SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
@@ -176,7 +176,7 @@ int main(){
                     }
                 }
                 printf("Verifying computed square root...\n");
-                int verification_result = verify_sqrt(p1, p2, result, SIZE, P_SIZE, R_SIZE);
+                int verification_result = verify_sqrt(p1, prime2, result, SIZE, P_SIZE, R_SIZE);
                 if (verification_result) {
                     printf("Verification passed: Computed square root is correct.\n");
                 } else {
@@ -244,9 +244,11 @@ int main(){
                 printf("Starting hash of data...\n");
                 unsigned char digest[32];
                 hash_sha3_256((unsigned char *)p1, SIZE, digest);
-                for(int i=0;i<SIZE;i++){
-                    printf("Resulting Array: %016llX\n", result[i]);
+                printf("SHA3-256 Digest: ");
+                for(int i =0;i<32;i++){
+                    printf("%02X", digest[i]);
                 }
+                printf("\n");
                 break;
             case 13:
                 printf("Exiting program.\n");

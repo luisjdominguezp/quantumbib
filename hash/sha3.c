@@ -4,12 +4,12 @@
 #include <stdio.h>
 #include <x86intrin.h>
 #include <string.h>
-
+/*
 #pragma intrinsic(__rdtsc)
 #define NTEST 100000
 
 void measured_function(volatile int *var) {(*var) = 1; }
-
+*/
 void hash_sha3_256(const unsigned char *data, size_t len, unsigned char *digest){
     EVP_MD_CTX *ctx = EVP_MD_CTX_new();
     if (ctx == NULL) {
@@ -37,7 +37,7 @@ void hash_sha3_256(const unsigned char *data, size_t len, unsigned char *digest)
 
     EVP_MD_CTX_free(ctx);
 }
-
+/*
 int main() {
     uint64_t start, end;
     int variable = 0;
@@ -67,3 +67,4 @@ int main() {
     return 0;
 
 }
+*/

@@ -11,7 +11,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
-void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int r_size, int bit_limit){
+void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int bit_limit){
     mpz_t base, expo, res;
     size_t count;
     mpz_inits(base, expo, res, NULL);
@@ -29,7 +29,7 @@ void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r
     */
 
     size_t bits = mpz_sizeinbase(expo, 2);
-    if(bits <= bit_limit){
+    if(bits <= (size_t)bit_limit){
         //check to see if expo is 0, 1 or 2
         if(mpz_cmp_ui(expo, 0) == 0){
             mpz_set_ui(res, 1);

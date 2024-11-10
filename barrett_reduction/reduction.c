@@ -22,7 +22,7 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     //b_b^(2*b_k) / p2
     //p being modulus
     //imports p2[] into a number
-    mpz_import(p, size, 1, sizeof(unsigned long long), 0, 0, p2);
+    mpz_import(p, size, -1, sizeof(unsigned long long), 0, 0, p2);
     //gmp_printf("Value of imported p: %Zx\n", p);
     //b_b^2*b_k
     mpz_pow_ui(big_b_pow, b_b, 2*b_k);
