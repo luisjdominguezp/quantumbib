@@ -50,7 +50,7 @@ int main(){
     int option2 = 0;
 
     while(1){
-        printf("----Enter 1 to input your numbers manually or 2 for random numbers----\n");
+        printf("----Enter 1 to input your numbers manually, 2 for random numbers or 3 to exit----\n");
         if(scanf("%d", &choice) != 1){
             printf("Invalid input. Exiting.\n");
             break;
@@ -82,6 +82,9 @@ int main(){
             q_random(p1, state, SIZE);
             q_random(p2, state, SIZE);
             gmp_randclear(state);
+        }  else if (choice == 3) {
+            printf("Exiting program...\n");
+            break;
         } else {
             printf("Invalid choice. Please enter 1 or 2.\n");
             continue;
@@ -146,7 +149,7 @@ int main(){
                 break;
             case 5:
                 printf("Starting exponentiation of these 2 numbers...\n");
-                expo(p1, p_expo, result, SIZE, BIT_LIMIT);
+                expo(p1, prime, result, SIZE, BIT_LIMIT);
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
@@ -205,15 +208,11 @@ int main(){
                 if(option==0){
                     printf("Starting check0s on this number...\n");
                     int resP1 = check0s(p1, SIZE);
-                    for(int i=0;i<SIZE;i++){
-                        printf("Result for this number is: %d (0-False 1-True)\n", resP1);
-                    }
+                    printf("Result for this number is: %d (0-False 1-True)\n", resP1);
                 } else if (option==1) { 
                     printf("Starting check0s on this number...\n");
                     int resP2 = check0s(p2, SIZE);
-                    for(int i=0;i<SIZE;i++){
-                        printf("Result for this number is: %d (0-False 1-True)\n", resP2);
-                    }
+                    printf("Result for this number is: %d (0-False 1-True)\n", resP2);
                 } else {
                     printf("Invalid option.\n");
                 }
@@ -227,15 +226,11 @@ int main(){
                 if(option==0){
                     printf("Starting check0s on this number...\n");
                     int resP1 = check1s(p1, SIZE);
-                    for(int i=0;i<SIZE;i++){
-                        printf("Result for this number is: %d (0-False 1-True)\n", resP1);
-                    }
+                    printf("Result for this number is: %d (0-False 1-True)\n", resP1);
                 } else if (option==1) { 
                     printf("Starting check0s on this number...\n");
                     int resP2 = check1s(p2, SIZE);
-                    for(int i=0;i<SIZE;i++){
-                        printf("Result for this number is: %d (0-False 1-True)\n", resP2);
-                    }
+                    printf("Result for this number is: %d (0-False 1-True)\n", resP2);
                 } else {
                     printf("Invalid option\n");
                 }
