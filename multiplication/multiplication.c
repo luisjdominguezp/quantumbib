@@ -31,7 +31,9 @@ void mult(unsigned long long p1[], unsigned long long p2[], unsigned long long r
             carry = temp >> 64;
         }
         //any excess is added to the next element
-        r[i+j+1] = carry;
+        if((i+j) < r_size){
+            r[i+j] += carry;
+        }
     }
 }
 /*

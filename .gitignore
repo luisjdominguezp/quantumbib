@@ -2,6 +2,7 @@ division/
 addition/add
 addition/avg.txt
 barret_reduction/reduc
+benchmarks/bm
 check0s/check0s
 check1s/check1s
 exponentiation/expo
