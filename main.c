@@ -121,56 +121,103 @@ int main(){
         switch (choice) {
             case 1:
                 printf("Starting addition of these 2 numbers...\n");
-                add_with_carry(p1, p2, result, SIZE);
+                printf("Calculating CPU cycles...\n");
+                start = __rdtsc();
+                for(int i =0;i<NTEST;i++){
+                    add_with_carry(p1, p2, result, SIZE);
+                }
+                end = __rdtsc();
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
+                printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 break;
             case 2:
                 printf("Starting subtraction of these 2 numbers...\n");
-                sub_with_borrow(p1, p2, result, SIZE);
+                printf("Calculating CPU cycles...\n");
+                start = __rdtsc();
+                for(int i =0;i<NTEST;i++){
+                    sub_with_borrow(p1, p2, result, SIZE);
+                }
+                end = __rdtsc();
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
+                printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 break;
             case 3:
                 printf("Starting multiplication of these 2 numbers...\n");
-                mult(p1, p2, result, SIZE, R_SIZE);
+                printf("Calculating CPU cycles...\n");
+                start = __rdtsc();
+                for(int i =0;i<NTEST;i++){
+                    mult(p1, p2, result, SIZE, R_SIZE);
+                }
+                end = __rdtsc();
                 for(int i=0;i<R_SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
+                printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 break;
             case 4:
                 printf("Starting Barrett reduction of these 2 numbers...\n");
-                reduc(p1, p_expo, result, SIZE, R_SIZE, bw);
+                printf("Calculating CPU cycles...\n");
+                start = __rdtsc();
+                for(int i =0;i<NTEST;i++){
+                    reduc(p1, p_expo, result, SIZE, R_SIZE, bw);
+                }
+                end = __rdtsc();
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
+                printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 break;
             case 5:
                 printf("Starting exponentiation of these 2 numbers...\n");
-                expo(p1, prime, result, SIZE, BIT_LIMIT);
+                printf("Calculating CPU cycles...\n");
+                start = __rdtsc();
+                for(int i =0;i<NTEST;i++){
+                    expo(p1, prime, result, SIZE, BIT_LIMIT);
+                }
+                end = __rdtsc();
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
+                printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 break;
             case 6:
                 printf("Starting montgomery product of these 2 numbers...\n");
-                montgomery_pr(p1, p2, result, SIZE, BIT_LIMIT, mod);
+                printf("Calculating CPU cycles...\n");
+                start = __rdtsc();
+                for(int i =0;i<NTEST;i++){
+                    montgomery_pr(p1, p2, result, SIZE, BIT_LIMIT, mod);
+                }
+                end = __rdtsc();
                 for(int i=0;i<R_SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
+                printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 break;
             case 7:
                 printf("Starting montgomery exponentiation of these 2 numbers...\n");
-                montgomery_exp(p1, mont_expo, result, SIZE, BIT_LIMIT, mod);
+                printf("Calculating CPU cycles...\n");
+                start = __rdtsc();
+                for(int i =0;i<NTEST;i++){
+                    montgomery_exp(p1, mont_expo, result, SIZE, BIT_LIMIT, mod);
+                }
+                end = __rdtsc();
                 for(int i=0;i<R_SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
+                printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 break;
             case 8:
                 printf("Starting square root operation...\n");
-                t_sqrt(p1, prime2, result, SIZE, R_SIZE);
+                printf("Calculating CPU cycles...\n");
+                start = __rdtsc();
+                for(int i =0;i<NTEST;i++){
+                    t_sqrt(p1, prime2, result, SIZE, R_SIZE);
+                }
+                end = __rdtsc();
                 if(result[0] == (unsigned long long)-1){
                     printf("No square root exists.\n");
                 } else {
@@ -185,11 +232,17 @@ int main(){
                 } else {
                     printf("Verification failed: Computed square root is incorrect.\n");
                 }
+                printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 break;
             case 9:
                 printf("Starting modular inverse...\n");
+                printf("Calculating CPU cycles...\n");
                 int status = 0;
-                status = inv_mod(modInv, prime2, result, SIZE);
+                start = __rdtsc();
+                for(int i=0;i<NTEST;i++){
+                    status = inv_mod(modInv, prime2, result, SIZE);
+                }
+                end = __rdtsc();
                 if (status != 1) {
                     printf("Modular inverse does not exist for these values.\n");
                 } else {
@@ -198,6 +251,7 @@ int main(){
                         printf("%016llX\n", result[i]);
                     }
                 }
+                printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 break;
             case 10:
                 printf("Choose which number to check: (0 - p1) (1 - p2)\n");
@@ -206,13 +260,29 @@ int main(){
                     break;
                 }
                 if(option==0){
+                    int res1 = 0;
                     printf("Starting check0s on this number...\n");
-                    int resP1 = check0s(p1, SIZE);
-                    printf("Result for this number is: %d (0-False 1-True)\n", resP1);
-                } else if (option==1) { 
+                    printf("Calculating CPU cycles...\n");
+                    start = __rdtsc();
+                    for(int i=0;i<NTEST;i++){
+                        int resP1 = check0s(p1, SIZE);
+                        res1 = resP1;
+                    }
+                    end = __rdtsc();
+                    printf("Result for this number is: %d (0-False 1-True)\n", res1);
+                    printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                } else if (option==1) {
+                    int res2 = 0;
                     printf("Starting check0s on this number...\n");
-                    int resP2 = check0s(p2, SIZE);
-                    printf("Result for this number is: %d (0-False 1-True)\n", resP2);
+                    printf("Calculating CPU cycles...\n");
+                    start = __rdtsc();
+                    for(int i = 0;i<NTEST;i++){
+                        int resP2 = check0s(p2, SIZE);
+                        res2 = resP2;
+                    }
+                    end = __rdtsc();
+                    printf("Result for this number is: %d (0-False 1-True)\n", res2);
+                    printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 } else {
                     printf("Invalid option.\n");
                 }
@@ -224,26 +294,68 @@ int main(){
                     break;
                 }
                 if(option==0){
-                    printf("Starting check0s on this number...\n");
-                    int resP1 = check1s(p1, SIZE);
-                    printf("Result for this number is: %d (0-False 1-True)\n", resP1);
-                } else if (option==1) { 
-                    printf("Starting check0s on this number...\n");
-                    int resP2 = check1s(p2, SIZE);
-                    printf("Result for this number is: %d (0-False 1-True)\n", resP2);
+                    int res1 = 0;
+                    printf("Starting check1s on this number...\n");
+                    printf("Calculating CPU cycles...\n");
+                    for(int i=0;i<NTEST;i++){
+                        int resP1 = check1s(p1, SIZE);
+                        res1 = resP1;
+                    }
+                    printf("Result for this number is: %d (0-False 1-True)\n", res1);
+                    printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                } else if (option==1) {
+                    int res2 = 0;
+                    printf("Starting check1s on this number...\n");
+                    printf("Calculating CPU cycles...\n");
+                    for(int i = 0;i<NTEST;i++){
+                        int resP2 = check1s(p2, SIZE);
+                        res2 = resP2;
+                    }
+                    printf("Result for this number is: %d (0-False 1-True)\n", res2);
+                    printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
                 } else {
                     printf("Invalid option\n");
                 }
                 break;
             case 12:
-                printf("Starting hash of data...\n");
-                unsigned char digest[32];
-                hash_sha3_256((unsigned char *)p1, SIZE, digest);
-                printf("SHA3-256 Digest: ");
-                for(int i =0;i<32;i++){
-                    printf("%02X", digest[i]);
+                printf("Choose which number to hash: (0 - p1) (1 - p2)\n");
+                if(scanf("%d", &option2) !=1){
+                    printf("Invalid input. Exiting.\n");
+                    break;
                 }
-                printf("\n");
+                if(option==0){
+                    printf("Starting hash of data...\n");
+                    unsigned char digest[32];
+                    printf("Calculating CPU cycles...\n");
+                    start = __rdtsc();
+                    for(int i =0;i<NTEST;i++){
+                        hash_sha3_256((unsigned char *)p1, SIZE, digest);
+                    }
+                    end = __rdtsc();
+                    printf("SHA3-256 Digest: ");
+                    for(int i =0;i<32;i++){
+                        printf("%02X", digest[i]);
+                    }
+                    printf("\n");
+                    printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                } else if (option==1){
+                    printf("Starting hash of data...\n");
+                    unsigned char digest[32];
+                    printf("Calculating CPU cycles...\n");
+                    start = __rdtsc();
+                    for(int i =0;i<NTEST;i++){
+                        hash_sha3_256((unsigned char *)p2, SIZE, digest);
+                    }
+                    end = __rdtsc();
+                    printf("SHA3-256 Digest: ");
+                    for(int i =0;i<32;i++){
+                        printf("%02X", digest[i]);
+                    }
+                    printf("\n");
+                    printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                } else {
+                    printf("Invalid input. Exiting\n");
+                }
                 break;
             case 13:
                 printf("Exiting program.\n");
@@ -254,16 +366,6 @@ int main(){
         }
     }
 
-    printf("Warming up the cpu.\n");
-    for(int i=0;i<NTEST;i++)
-    {
-        measured_function(&variable);
-    }
-
-    printf("Calculating Result...\n");
-    start = __rdtsc();
-
-    end = __rdtsc();
     mpz_clear(mod);
     return 0;
 
