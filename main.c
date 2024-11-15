@@ -1,3 +1,4 @@
+#include <bits/time.h>
 #include <stdio.h>
 #include <inttypes.h>
 #include <time.h>
@@ -30,6 +31,8 @@ void measured_function(volatile int *var){(*var) = 1;}
 
 int main(){
     uint64_t start, end;
+    clock_t t;
+    double time_taken = 0;
     int variable = 0;
 
     unsigned long long p1[SIZE] = {0};
@@ -86,7 +89,7 @@ int main(){
             printf("Exiting program...\n");
             break;
         } else {
-            printf("Invalid choice. Please enter 1 or 2.\n");
+            printf("Invalid choice. Please enter 1, 2 or 3.\n");
             continue;
         }
 
@@ -123,100 +126,129 @@ int main(){
                 printf("Starting addition of these 2 numbers...\n");
                 printf("Calculating CPU cycles...\n");
                 start = __rdtsc();
+                t = clock();
                 for(int i =0;i<NTEST;i++){
                     add_with_carry(p1, p2, result, SIZE);
                 }
-                end = __rdtsc();
+                t = clock() - t;
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                time_taken = ((double)t/CLOCKS_PER_SEC);
+                printf("Execution time: %f seconds\n", time_taken);
                 break;
             case 2:
                 printf("Starting subtraction of these 2 numbers...\n");
                 printf("Calculating CPU cycles...\n");
                 start = __rdtsc();
+                t = clock();
                 for(int i =0;i<NTEST;i++){
                     sub_with_borrow(p1, p2, result, SIZE);
                 }
+                t = clock() - t;
                 end = __rdtsc();
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                time_taken = ((double)t/CLOCKS_PER_SEC);
+                printf("Execution time: %f seconds\n", time_taken);
                 break;
             case 3:
                 printf("Starting multiplication of these 2 numbers...\n");
                 printf("Calculating CPU cycles...\n");
                 start = __rdtsc();
+                t = clock();
                 for(int i =0;i<NTEST;i++){
                     mult(p1, p2, result, SIZE, R_SIZE);
                 }
+                t = clock() - t;
                 end = __rdtsc();
                 for(int i=0;i<R_SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                time_taken = ((double)t/CLOCKS_PER_SEC);
+                printf("Execution time: %f seconds\n", time_taken);
                 break;
             case 4:
                 printf("Starting Barrett reduction of these 2 numbers...\n");
                 printf("Calculating CPU cycles...\n");
                 start = __rdtsc();
+                t = clock();
                 for(int i =0;i<NTEST;i++){
                     reduc(p1, p_expo, result, SIZE, R_SIZE, bw);
                 }
+                t = clock() - t;
                 end = __rdtsc();
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                time_taken = ((double)t/CLOCKS_PER_SEC);
+                printf("Execution time: %f seconds\n", time_taken);
                 break;
             case 5:
                 printf("Starting exponentiation of these 2 numbers...\n");
                 printf("Calculating CPU cycles...\n");
                 start = __rdtsc();
+                t = clock();
                 for(int i =0;i<NTEST;i++){
                     expo(p1, prime, result, SIZE, BIT_LIMIT);
                 }
+                t = clock() - t;
                 end = __rdtsc();
                 for(int i=0;i<SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                time_taken = ((double)t/CLOCKS_PER_SEC);
+                printf("Execution time: %f seconds\n", time_taken);
                 break;
             case 6:
                 printf("Starting montgomery product of these 2 numbers...\n");
                 printf("Calculating CPU cycles...\n");
                 start = __rdtsc();
+                t = clock();
                 for(int i =0;i<NTEST;i++){
                     montgomery_pr(p1, p2, result, SIZE, BIT_LIMIT, mod);
                 }
+                t = clock() - t;
                 end = __rdtsc();
                 for(int i=0;i<R_SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                time_taken = ((double)t/CLOCKS_PER_SEC);
+                printf("Execution time: %f seconds\n", time_taken);
                 break;
             case 7:
                 printf("Starting montgomery exponentiation of these 2 numbers...\n");
                 printf("Calculating CPU cycles...\n");
                 start = __rdtsc();
+                t = clock();
                 for(int i =0;i<NTEST;i++){
                     montgomery_exp(p1, mont_expo, result, SIZE, BIT_LIMIT, mod);
                 }
+                t = clock() - t;
                 end = __rdtsc();
                 for(int i=0;i<R_SIZE;i++){
                     printf("Resulting Array: %016llX\n", result[i]);
                 }
                 printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                time_taken = ((double)t/CLOCKS_PER_SEC);
+                printf("Execution time: %f seconds\n", time_taken);
                 break;
             case 8:
                 printf("Starting square root operation...\n");
                 printf("Calculating CPU cycles...\n");
                 start = __rdtsc();
+                t = clock();
                 for(int i =0;i<NTEST;i++){
                     t_sqrt(p1, prime2, result, SIZE, R_SIZE);
                 }
+                t = clock() - t;
                 end = __rdtsc();
                 if(result[0] == (unsigned long long)-1){
                     printf("No square root exists.\n");
@@ -233,15 +265,19 @@ int main(){
                     printf("Verification failed: Computed square root is incorrect.\n");
                 }
                 printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                time_taken = ((double)t/CLOCKS_PER_SEC);
+                printf("Execution time: %f seconds\n", time_taken);
                 break;
             case 9:
                 printf("Starting modular inverse...\n");
                 printf("Calculating CPU cycles...\n");
                 int status = 0;
                 start = __rdtsc();
+                t = clock();
                 for(int i=0;i<NTEST;i++){
                     status = inv_mod(modInv, prime2, result, SIZE);
                 }
+                t = clock() - t;
                 end = __rdtsc();
                 if (status != 1) {
                     printf("Modular inverse does not exist for these values.\n");
@@ -252,6 +288,8 @@ int main(){
                     }
                 }
                 printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                time_taken = ((double)t/CLOCKS_PER_SEC);
+                printf("Execution time: %f seconds\n", time_taken);
                 break;
             case 10:
                 printf("Choose which number to check: (0 - p1) (1 - p2)\n");
@@ -264,25 +302,33 @@ int main(){
                     printf("Starting check0s on this number...\n");
                     printf("Calculating CPU cycles...\n");
                     start = __rdtsc();
+                    t = clock();
                     for(int i=0;i<NTEST;i++){
                         int resP1 = check0s(p1, SIZE);
                         res1 = resP1;
                     }
+                    t = clock() - t;
                     end = __rdtsc();
                     printf("Result for this number is: %d (0-False 1-True)\n", res1);
                     printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                    time_taken = ((double)t/CLOCKS_PER_SEC);
+                    printf("Execution time: %f seconds\n", time_taken);
                 } else if (option==1) {
                     int res2 = 0;
                     printf("Starting check0s on this number...\n");
                     printf("Calculating CPU cycles...\n");
                     start = __rdtsc();
+                    t = clock();
                     for(int i = 0;i<NTEST;i++){
                         int resP2 = check0s(p2, SIZE);
                         res2 = resP2;
                     }
+                    t = clock() - t;
                     end = __rdtsc();
                     printf("Result for this number is: %d (0-False 1-True)\n", res2);
                     printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                    time_taken = ((double)t/CLOCKS_PER_SEC);
+                    printf("Execution time: %f seconds\n", time_taken);
                 } else {
                     printf("Invalid option.\n");
                 }
@@ -297,22 +343,34 @@ int main(){
                     int res1 = 0;
                     printf("Starting check1s on this number...\n");
                     printf("Calculating CPU cycles...\n");
+                    start = __rdtsc();
+                    t = clock();
                     for(int i=0;i<NTEST;i++){
                         int resP1 = check1s(p1, SIZE);
                         res1 = resP1;
                     }
+                    t = clock() - t;
+                    end = __rdtsc();
                     printf("Result for this number is: %d (0-False 1-True)\n", res1);
                     printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                    time_taken = ((double)t/CLOCKS_PER_SEC);
+                    printf("Execution time: %f seconds\n", time_taken);
                 } else if (option==1) {
                     int res2 = 0;
                     printf("Starting check1s on this number...\n");
                     printf("Calculating CPU cycles...\n");
+                    start = __rdtsc();
+                    t = clock();
                     for(int i = 0;i<NTEST;i++){
                         int resP2 = check1s(p2, SIZE);
                         res2 = resP2;
                     }
+                    t = clock() - t;
+                    end = __rdtsc();
                     printf("Result for this number is: %d (0-False 1-True)\n", res2);
                     printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                    time_taken = ((double)t/CLOCKS_PER_SEC);
+                    printf("Execution time: %f seconds\n", time_taken);
                 } else {
                     printf("Invalid option\n");
                 }
@@ -328,9 +386,11 @@ int main(){
                     unsigned char digest[32];
                     printf("Calculating CPU cycles...\n");
                     start = __rdtsc();
+                    t = clock();
                     for(int i =0;i<NTEST;i++){
                         hash_sha3_256((unsigned char *)p1, SIZE, digest);
                     }
+                    t = clock() - t;
                     end = __rdtsc();
                     printf("SHA3-256 Digest: ");
                     for(int i =0;i<32;i++){
@@ -338,14 +398,18 @@ int main(){
                     }
                     printf("\n");
                     printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                    time_taken = ((double)t/CLOCKS_PER_SEC);
+                    printf("Execution time: %f seconds\n", time_taken);
                 } else if (option==1){
                     printf("Starting hash of data...\n");
                     unsigned char digest[32];
                     printf("Calculating CPU cycles...\n");
                     start = __rdtsc();
+                    t = clock();
                     for(int i =0;i<NTEST;i++){
                         hash_sha3_256((unsigned char *)p2, SIZE, digest);
                     }
+                    t = clock() - t;
                     end = __rdtsc();
                     printf("SHA3-256 Digest: ");
                     for(int i =0;i<32;i++){
@@ -353,6 +417,8 @@ int main(){
                     }
                     printf("\n");
                     printf("Total = %f CPU cycles\n", (float)(end-start)/NTEST);
+                    time_taken = ((double)t/CLOCKS_PER_SEC);
+                    printf("Execution time: %f seconds\n", time_taken);
                 } else {
                     printf("Invalid input. Exiting\n");
                 }
