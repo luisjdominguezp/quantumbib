@@ -5,11 +5,8 @@
 ## Table of Contents
 
 - [Features](#features)
-- [Project Structure](#project-structure)
 - [Dependencies](#dependencies)
 - [Installation](#installation)
-- [Usage](#usage)
-- [Running Tests and Benchmarks](#running-tests-and-benchmarks)
 - [License](#license)
 
 ## Features
@@ -21,10 +18,6 @@ Quantumbib provides the following functionalities:
 - **Cryptographic Hashing**: SHA3-256.
 - **Utility Functions**: Check if least significant bit is 0 or 1 and a random number generator.
 - **Other Functions**: Quantum-safe square root and modular inverse calculations.
-
-## Project Structure
-
-quantumbib/ ├── addition/ # Addition functions ├── barrett_reduction/ # Barrett reduction functions ├── benchmarks/ # Benchmarking scripts ├── check0s/ # Check if LSB is 0 ├── check1s/ # Check if LSB is 1  ├── exponentiation/ # Exponentiation functions ├── hash/ # SHA3-256 hashing functions ├── mod_inv/ # Modular inverse functions ├── mont_expo/ # Montgomery exponentiation functions ├── montgomery/ # Montgomery product functions ├── multiplication/ # Multiplication functions ├── random/ # Random number generation functions ├── sqrt_tonelli_shanks/ # Square root functions using Tonelli-Shanks algorithm ├── subtraction/ # Subtraction functions ├── LICENSE # License file ├── Makefile # Makefile for building and running the program └── README.md # Project documentation
 
 ## Dependencies
 
