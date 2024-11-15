@@ -16,15 +16,15 @@
 
 Quantumbib provides the following functionalities:
 
-- **Arithmetic Operations**: Addition, subtraction, multiplication, and division.
-- **Modular Arithmetic**: Barrett reduction, modular exponentiation, and Montgomery multiplication.
+- **Arithmetic Operations**: Addition, subtraction and multiplication.
+- **Modular Arithmetic**: Barrett reduction, modular exponentiation, Montgomery multiplication and Montgomery exponentiation.
 - **Cryptographic Hashing**: SHA3-256.
-- **Utility Functions**: Check if least significant bit is 0 or 1.
+- **Utility Functions**: Check if least significant bit is 0 or 1 and a random number generator.
 - **Other Functions**: Quantum-safe square root and modular inverse calculations.
 
 ## Project Structure
 
-quantumbib/ ├── addition/ # Addition functions ├── barrett_reduction/ # Barrett reduction functions ├── benchmarks/ # Benchmarking scripts ├── check0s/ # Check if LSB is 0 ├── check1s/ # Check if LSB is 1 ├── division/ # Division functions ├── exponentiation/ # Exponentiation functions ├── hash/ # SHA3-256 hashing functions ├── mod_inv/ # Modular inverse functions ├── mont_expo/ # Montgomery exponentiation functions ├── montgomery/ # Montgomery product functions ├── multiplication/ # Multiplication functions ├── random/ # Random number generation functions ├── sqrt_tonelli_shanks/ # Square root functions using Tonelli-Shanks algorithm ├── subtraction/ # Subtraction functions ├── LICENSE # License file ├── Makefile # Makefile for building and running the program └── README.md # Project documentation
+quantumbib/ ├── addition/ # Addition functions ├── barrett_reduction/ # Barrett reduction functions ├── benchmarks/ # Benchmarking scripts ├── check0s/ # Check if LSB is 0 ├── check1s/ # Check if LSB is 1  ├── exponentiation/ # Exponentiation functions ├── hash/ # SHA3-256 hashing functions ├── mod_inv/ # Modular inverse functions ├── mont_expo/ # Montgomery exponentiation functions ├── montgomery/ # Montgomery product functions ├── multiplication/ # Multiplication functions ├── random/ # Random number generation functions ├── sqrt_tonelli_shanks/ # Square root functions using Tonelli-Shanks algorithm ├── subtraction/ # Subtraction functions ├── LICENSE # License file ├── Makefile # Makefile for building and running the program └── README.md # Project documentation
 
 ## Dependencies
 
@@ -44,12 +44,20 @@ Ensure you have the following dependencies installed on your 🐧 Linux system:
 
 ## Installation
 
-Clone the repository
-```bash
-git clone https://github.com/yourusername/quantumbib.git
-cd quantumbib
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/yourusername/quantumbib.git
+   cd quantumbib
 
-License
+2. **Build the Program**: Use the Makefile to compile the main program.
+   ```bash
+   make
+
+3. **Run the Program**:
+   ```bash
+   ./main_program
+
+## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
 
