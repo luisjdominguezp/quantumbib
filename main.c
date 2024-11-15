@@ -1,4 +1,5 @@
 #include <bits/time.h>
+#include <criterion/internal/test.h>
 #include <stdio.h>
 #include <inttypes.h>
 #include <time.h>
@@ -26,8 +27,6 @@
 #define BIT_LIMIT 64
 #define bw 64
 #define MOD_HEX "FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF" 
-
-void measured_function(volatile int *var){(*var) = 1;}
 
 int main(){
     uint64_t start, end;
@@ -81,7 +80,6 @@ int main(){
 
             unsigned long seed = (unsigned long)time(NULL);
             gmp_randseed_ui(state, seed);
-
             q_random(p1, state, SIZE);
             q_random(p2, state, SIZE);
             gmp_randclear(state);
