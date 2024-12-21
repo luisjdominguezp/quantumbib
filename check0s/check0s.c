@@ -11,6 +11,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 int check0s(unsigned long long p[], int size){
     unsigned long long mask = 1ULL;
     //printf("p[SIZE-1] = %llX - mask = %llX\n", p[SIZE-1], mask);

@@ -10,6 +10,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 __int128 mult128(__int128 p1, __int128 p2){
     return p1*p2;
 }

@@ -21,6 +21,7 @@
 #define bw 64
 #define MOD_HEX "FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF" 
 
+// Copyright © 2024 Horacio Hernandez
 
 Test(addition, add_with_carry_benchmark) {
     unsigned long long p1[SIZE] = {0xFFFFFFFFFFFFFFFF, 0x0, 0x123456789ABCDEF0, 0x9876543210FEDCBA};

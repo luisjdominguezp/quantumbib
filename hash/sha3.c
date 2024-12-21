@@ -10,6 +10,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 void hash_sha3_256(const unsigned char *data, size_t len, unsigned char *digest){
     EVP_MD_CTX *ctx = EVP_MD_CTX_new();
     if (ctx == NULL) {

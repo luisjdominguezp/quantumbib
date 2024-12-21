@@ -9,6 +9,7 @@
 /*
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 void sub_with_borrow(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size){
     long long borrow = 0;
     for(int i = 0;i<size;i++){

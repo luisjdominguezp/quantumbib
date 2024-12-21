@@ -13,6 +13,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 /*
 void montgomery_pr(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int bit_limit, mpz_t mod){
     mpz_t a, b, q, M_r, M_pp, t, temp, u;

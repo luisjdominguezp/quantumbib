@@ -12,6 +12,7 @@
 /*
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 void q_random(unsigned long long p[], gmp_randstate_t state, int size) {
     mpz_t rand_num;
     mpz_init(rand_num);

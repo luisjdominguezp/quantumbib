@@ -11,6 +11,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 void expo(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int bit_limit){
     mpz_t base, expo, res;
     size_t count;

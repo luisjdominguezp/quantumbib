@@ -19,6 +19,8 @@
 #include "check1s/check1s.h"
 #include "hash/sha3.h"
 
+// Copyright © 2024 Horacio Hernandez
+
 #define SIZE 4
 #define P_SIZE 5
 #define R_SIZE 8

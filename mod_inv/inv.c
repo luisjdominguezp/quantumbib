@@ -11,6 +11,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 int inv_mod(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size) {
     mpz_t a, n, u, v, x1, x2, temp, result_mpz;
     mpz_inits(a, n, u, v, x1, x2, temp, result_mpz, NULL);

@@ -13,6 +13,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 int verify_sqrt(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int p_size, int r_size) {
     mpz_t n_mpz, r_mpz, p_mpz, temp;
     mpz_inits(n_mpz, r_mpz, p_mpz, temp, NULL);

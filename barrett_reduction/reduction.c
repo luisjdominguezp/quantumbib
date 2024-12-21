@@ -11,6 +11,7 @@
 
 void measured_function(volatile int *var) {(*var) = 1; }
 */
+// Copyright © 2024 Horacio Hernandez
 void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int r_size, int b_w){
     //SIZE + 1
     int b_k = 5;
