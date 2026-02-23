@@ -13,8 +13,11 @@ void measured_function(volatile int *var) {(*var) = 1; }
 */
 // Copyright © 2024 Horacio Hernandez
 void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long r[], int size, int r_size, int b_w){
-    //SIZE + 1
-    int b_k = 5;
+    // b_k = number of limbs in the modulus + 1 (Barrett variant that uses k+1
+    // instead of k to keep the approximation error strictly less than 2).
+    // FIX (Week 5 review): was hardcoded to 5; now derived from 'size' so the
+    // function stays correct if called with a modulus of any limb count.
+    int b_k = size + 1;
     //gmp library was imported to handle big variables such as b_b, mu, b_mask, b_expo
     mpz_t b_b, p, big_b_pow, mu, b_mask, b_expo;
     mpz_inits(b_b, p, big_b_pow, mu, b_mask, b_expo, NULL);
@@ -82,7 +85,11 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     */
     mpz_t z, qh, rs, temp, temp2, rsTemp, rsTemp2, rsT, mul2;
     mpz_inits(z, qh, rs, temp, temp2, rsTemp, rsTemp2, rsT, mul2, NULL);
-    mpz_import(z, r_size, 1, sizeof(unsigned long long), 0, 0, p1);
+    // FIX (Week 5 review): order was 1 (big-endian) but all arrays in this
+    // library use little-endian limb order (index 0 = least significant limb,
+    // confirmed by the carry propagation in addition/addition.c).
+    // p2 was already imported correctly with order -1; now p1 matches.
+    mpz_import(z, r_size, -1, sizeof(unsigned long long), 0, 0, p1);
     //qh = (((z >> b_w*(b_k-1)) * mu) >> (b_w * (b_k + 1)))
     //temp = z >> b_w*(b_k-1) 
     mpz_fdiv_q_2exp(temp, z, b_w * (b_k - 1));
@@ -112,7 +119,9 @@ void reduc(unsigned long long p1[], unsigned long long p2[], unsigned long long 
     mpz_export(r, &count, 1, sizeof(unsigned long long), 0, 0, rsT);
     //printf("Number of blocks or limbs exported: %zu\n", count);
 
-    mpz_clears(b_b, p, big_b_pow, mu, b_expo, z, qh, temp, temp2, rsT, rsTemp, rsTemp2, mul2, NULL);
+    // FIX (Week 5 review): b_mask was allocated with mpz_inits but never
+    // included in mpz_clears, causing a GMP memory leak on every call.
+    mpz_clears(b_b, p, big_b_pow, mu, b_mask, b_expo, z, qh, temp, temp2, rsT, rsTemp, rsTemp2, mul2, NULL);
 
 }
 /*
