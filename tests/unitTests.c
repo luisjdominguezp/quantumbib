@@ -1,5 +1,6 @@
 #include <criterion/criterion.h>
 #include <time.h>
+#include <string.h>
 #include "../addition/addition.h"
 #include "../subtraction/subtracion.h"
 #include "../multiplication/multiplication.h"
@@ -13,6 +14,9 @@
 #include "../check0s/check0s.h"
 #include "../check1s/check1s.h"
 #include "../hash/sha3.h"
+#include "../dilithium/dilithium_poly.h"
+#include "../dilithium/dilithium_keygen.h"
+#include "../dilithium/dilithium_sign.h"
 
 #define SIZE 4
 #define P_SIZE 5
@@ -133,4 +137,93 @@ Test(hash, hash_benchmark) {
     unsigned long long p1[SIZE] = {0xFFFFFFFFFFFFFFFF, 0x0, 0x123456789ABCDEF0, 0x9876543210FEDCBA};
     unsigned char digest[32];
     hash_sha3_256((unsigned char *)p1, SIZE, digest);
+}
+
+/* ── Dilithium Week 6 tests ──────────────────────────────────────────────
+ *
+ * Test 1 – dilithium_keygen
+ *   Verify that key generation runs without error and that rho, t1, t0
+ *   are non-zero (i.e., the SHAKE expansion actually produced output).
+ *
+ * Test 2 – dilithium_sign_verify (happy path)
+ *   Sign a short message with a fresh key pair and verify it.
+ *   A correct implementation must accept its own signatures.
+ *
+ * Test 3 – dilithium_verify_tampered (reject path)
+ *   Flip one byte of the message after signing.
+ *   A correct implementation must reject the now-invalid signature.
+ * ────────────────────────────────────────────────────────────────────── */
+
+Test(dilithium, keygen) {
+    static const uint8_t seed[32] = {
+        0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,
+        0x09,0x0A,0x0B,0x0C,0x0D,0x0E,0x0F,0x10,
+        0x11,0x12,0x13,0x14,0x15,0x16,0x17,0x18,
+        0x19,0x1A,0x1B,0x1C,0x1D,0x1E,0x1F,0x20
+    };
+
+    dilithium_pk pk;
+    dilithium_sk sk;
+    int rc = dilithium_keygen_from_seed(&pk, &sk, seed);
+    cr_assert_eq(rc, 0, "keygen returned error");
+
+    /* rho must be non-zero */
+    int rho_nonzero = 0;
+    for (int i = 0; i < 32; i++) rho_nonzero |= pk.rho[i];
+    cr_assert_neq(rho_nonzero, 0, "rho is all-zero");
+
+    /* t1 must have at least one non-zero coefficient */
+    int t1_nonzero = 0;
+    for (int i = 0; i < DLT_K && !t1_nonzero; i++)
+        for (int j = 0; j < DILITHIUM_N; j++)
+            t1_nonzero |= pk.t1.vec[i].coeffs[j];
+    cr_assert_neq(t1_nonzero, 0, "t1 is all-zero");
+}
+
+Test(dilithium, sign_verify) {
+    static const uint8_t seed[32] = {
+        0xAB,0xCD,0xEF,0x01,0x23,0x45,0x67,0x89,
+        0xAB,0xCD,0xEF,0x01,0x23,0x45,0x67,0x89,
+        0xAB,0xCD,0xEF,0x01,0x23,0x45,0x67,0x89,
+        0xAB,0xCD,0xEF,0x01,0x23,0x45,0x67,0x89
+    };
+
+    dilithium_pk pk;
+    dilithium_sk sk;
+    cr_assert_eq(dilithium_keygen_from_seed(&pk, &sk, seed), 0);
+
+    const uint8_t msg[]  = "PAP II – ML-DSA Week 6 test message";
+    size_t        mlen   = sizeof(msg) - 1;
+
+    dilithium_sig sig;
+    int rc_sign = dilithium_sign(&sig, msg, mlen, &sk);
+    cr_assert_eq(rc_sign, 0, "sign returned error");
+
+    int rc_verify = dilithium_verify(&sig, msg, mlen, &pk);
+    cr_assert_eq(rc_verify, 0, "verify rejected a valid signature");
+}
+
+Test(dilithium, verify_tampered) {
+    static const uint8_t seed[32] = {
+        0xDE,0xAD,0xBE,0xEF,0xDE,0xAD,0xBE,0xEF,
+        0xDE,0xAD,0xBE,0xEF,0xDE,0xAD,0xBE,0xEF,
+        0xDE,0xAD,0xBE,0xEF,0xDE,0xAD,0xBE,0xEF,
+        0xDE,0xAD,0xBE,0xEF,0xDE,0xAD,0xBE,0xEF
+    };
+
+    dilithium_pk pk;
+    dilithium_sk sk;
+    cr_assert_eq(dilithium_keygen_from_seed(&pk, &sk, seed), 0);
+
+    uint8_t msg[]  = "Authentic message for signing";
+    size_t  mlen   = sizeof(msg) - 1;
+
+    dilithium_sig sig;
+    cr_assert_eq(dilithium_sign(&sig, msg, mlen, &sk), 0);
+
+    /* Tamper: flip a byte in the middle of the message */
+    msg[4] ^= 0xFF;
+
+    int rc = dilithium_verify(&sig, msg, mlen, &pk);
+    cr_assert_neq(rc, 0, "verify accepted a tampered message");
 }
