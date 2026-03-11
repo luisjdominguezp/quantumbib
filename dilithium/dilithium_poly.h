@@ -2,18 +2,15 @@
 #define DILITHIUM_POLY_H
 
 /*
- * Polynomial types and arithmetic for ML-DSA (CRYSTALS-Dilithium)
- * Standard : NIST FIPS 204
- * Author   : Jorge Ramón Figueroa Maya  –  PAP II, Week 6
+ * Polynomial types, arithmetic and sampling for Dilithium.
+ * Merges ref/poly.h, ref/polyvec.h and ref/rounding.h from
+ * https://github.com/pq-crystals/dilithium
  *
- * The ring is R_q = Z_q[X] / (X^N + 1),  N = 256,  q = 8 380 417.
- * Polynomials are arrays of N int32_t coefficients.
- *
- * Coefficient invariants (by function):
- *   – After poly_reduce  : coeffs ∈ (-q, q)
- *   – After poly_caddq   : coeffs ∈ [0, q)
- *   – After poly_uniform : coeffs ∈ [0, q)
- *   – After poly_uniform_eta : coeffs ∈ [-eta, eta]
+ * Main differences vs the reference:
+ *  - Vectors use fixed worst-case dimensions (K_MAX=8, L_MAX=7) so
+ *    one build works for all parameter sets.
+ *  - NTT multiplication replaced by schoolbook O(N^2).
+ *  - Sampling functions take eta/gamma1/tau as arguments.
  */
 
 #include <stdint.h>
@@ -21,144 +18,284 @@
 #include "dilithium_params.h"
 #include "dilithium_reduce.h"
 
-/* ── Types ─────────────────────────────────────────────────────────────── */
+/* Types */
 
 typedef struct {
-    int32_t coeffs[DILITHIUM_N];
+  int32_t coeffs[DILITHIUM_N];
 } poly;
 
 /* Worst-case dimensions: ML-DSA-87 has k=8, l=7 */
 #define DILITHIUM_K_MAX  8
 #define DILITHIUM_L_MAX  7
 
-typedef struct { poly vec[DILITHIUM_K_MAX]; } polyveck;  /* k-length vector */
-typedef struct { poly vec[DILITHIUM_L_MAX]; } polyvecl;  /* l-length vector */
-typedef struct { poly mat[DILITHIUM_K_MAX][DILITHIUM_L_MAX]; } polymat; /* k×l */
+typedef struct { poly vec[DILITHIUM_K_MAX]; } polyveck;
+typedef struct { poly vec[DILITHIUM_L_MAX]; } polyvecl;
+typedef struct { poly mat[DILITHIUM_K_MAX][DILITHIUM_L_MAX]; } polymat;
 
-/* ── Polynomial arithmetic ─────────────────────────────────────────────── */
+/* Polynomial arithmetic (from ref/poly.h) */
 
-/* c = a + b  (coefficientwise) */
-void poly_add(poly *c, const poly *a, const poly *b);
-
-/* c = a - b  (coefficientwise) */
-void poly_sub(poly *c, const poly *a, const poly *b);
-
-/* Reduce all coefficients into (-q, q) via Barrett */
+/*************************************************
+* Name:        poly_reduce
+*
+* Description: Inplace reduction of all coefficients of polynomial to
+*              representative in [-6283008,6283008].
+*
+* Arguments:   - poly *a: pointer to input/output polynomial
+**************************************************/
 void poly_reduce(poly *a);
 
-/* Normalise all coefficients into [0, q) */
+/*************************************************
+* Name:        poly_caddq
+*
+* Description: For all coefficients of in/out polynomial add Q if
+*              coefficient is negative.
+*
+* Arguments:   - poly *a: pointer to input/output polynomial
+**************************************************/
 void poly_caddq(poly *a);
 
-/*
- * poly_schoolbook_mul – c = a · b  mod (X^N + 1, q)
- *
- * Schoolbook O(N²) convolution.  Uses X^N ≡ -1 to fold the upper half.
- * Intermediate accumulation in int64_t to prevent overflow (max |term| < q²).
- */
+/*************************************************
+* Name:        poly_add
+*
+* Description: Add polynomials. No modular reduction is performed.
+*
+* Arguments:   - poly *c: pointer to output polynomial
+*              - const poly *a: pointer to first summand
+*              - const poly *b: pointer to second summand
+**************************************************/
+void poly_add(poly *c, const poly *a, const poly *b);
+
+/*************************************************
+* Name:        poly_sub
+*
+* Description: Subtract polynomials. No modular reduction is
+*              performed.
+*
+* Arguments:   - poly *c: pointer to output polynomial
+*              - const poly *a: pointer to first input polynomial
+*              - const poly *b: pointer to second input polynomial to be
+*                                subtracted from first input polynomial
+**************************************************/
+void poly_sub(poly *c, const poly *a, const poly *b);
+
+/*************************************************
+* Name:        poly_shiftl
+*
+* Description: Multiply polynomial by 2^D without modular reduction.
+*              Assumes input coefficients to be less than 2^{31-D} in
+*              absolute value.
+*
+* Arguments:   - poly *a: pointer to input/output polynomial
+**************************************************/
+void poly_shiftl(poly *a);
+
+/*************************************************
+* Name:        poly_schoolbook_mul
+*
+* Description: Schoolbook O(N^2) polynomial multiplication in
+*              R_q = Z_q[X]/(X^N+1).  Used instead of NTT.
+*
+* Arguments:   - poly *c: pointer to output polynomial
+*              - const poly *a: pointer to first input polynomial
+*              - const poly *b: pointer to second input polynomial
+**************************************************/
 void poly_schoolbook_mul(poly *c, const poly *a, const poly *b);
 
-/* Infinity norm: max |a->coeffs[i]| */
-int32_t poly_inf_norm(const poly *a);
+/*************************************************
+* Name:        poly_chknorm
+*
+* Description: Check infinity norm of polynomial against given bound.
+*              Assumes input coefficients were reduced by reduce32().
+*
+* Arguments:   - const poly *a: pointer to polynomial
+*              - int32_t B: norm bound
+*
+* Returns 0 if norm is strictly smaller than B <= (Q-1)/8 and 1 otherwise.
+**************************************************/
+int poly_chknorm(const poly *a, int32_t B);
 
-/* ── Decomposition helpers ─────────────────────────────────────────────── */
+/* Rounding (from ref/rounding.h) */
 
-/*
- * poly_power2round – Lossless decomposition of t into (t1, t0).
- *
- * For each coefficient r ∈ [0, q):
- *   t0[i] = r  mod± 2^d   (centred, ∈ (-2^{d-1}, 2^{d-1}])
- *   t1[i] = (r - t0[i]) / 2^d
- * where d = DILITHIUM_D = 13.
- */
-void poly_power2round(poly *t1, poly *t0, const poly *t);
+/*************************************************
+* Name:        power2round
+*
+* Description: For finite field element a, compute a0, a1 such that
+*              a mod^+ Q = a1*2^D + a0 with -2^{D-1} < a0 <= 2^{D-1}.
+*              Assumes a to be standard representative.
+*
+* Arguments:   - int32_t a: input element
+*              - int32_t *a0: pointer to output element a0
+*
+* Returns a1.
+**************************************************/
+int32_t power2round(int32_t *a0, int32_t a);
 
-/*
- * poly_highbits / poly_lowbits – Decompose  r = r1·α + r0 mod q
- *
- * α = 2·gamma2.  r0 is centred in (-gamma2, gamma2], r1 = (r-r0)/α.
- * Edge case: r1 = (q-1)/α → r1 = 0, r0 = r0 - 1.
- */
-void poly_highbits(poly *r1, const poly *r, int32_t gamma2);
-void poly_lowbits (poly *r0, const poly *r, int32_t gamma2);
+/*************************************************
+* Name:        decompose
+*
+* Description: For finite field element a, compute high and low bits
+*              a0, a1 such that a mod^+ Q = a1*ALPHA + a0 with
+*              -ALPHA/2 < a0 <= ALPHA/2 except if a1 = (Q-1)/ALPHA
+*              where we set a1 = 0 and -ALPHA/2 <= a0 = a mod^+ Q - Q < 0.
+*              Assumes a to be standard representative.
+*
+* Arguments:   - int32_t *a0: pointer to output element a0
+*              - int32_t a: input element
+*              - int32_t gamma2: the gamma2 parameter
+*
+* Returns a1.
+**************************************************/
+int32_t decompose(int32_t *a0, int32_t a, int32_t gamma2);
 
-/* poly_makehint – hint[i] = 1 iff HighBits(r+z, gamma2) ≠ HighBits(r, gamma2) */
-int poly_makehint(poly *h, const poly *z, const poly *r, int32_t gamma2);
+/*************************************************
+* Name:        make_hint
+*
+* Description: Compute hint bit indicating whether the low bits of the
+*              input element overflow into the high bits.
+*
+* Arguments:   - int32_t a0: low bits of input element
+*              - int32_t a1: high bits of input element
+*              - int32_t gamma2: the gamma2 parameter
+*
+* Returns 1 if overflow.
+**************************************************/
+unsigned int make_hint(int32_t a0, int32_t a1, int32_t gamma2);
 
-/* poly_usehint   – recover w1 from (hint, r) */
-void poly_usehint(poly *w1, const poly *h, const poly *r, int32_t gamma2);
+/*************************************************
+* Name:        use_hint
+*
+* Description: Correct high bits according to hint.
+*
+* Arguments:   - int32_t a: input element
+*              - unsigned int hint: hint bit
+*              - int32_t gamma2: the gamma2 parameter
+*
+* Returns corrected high bits.
+**************************************************/
+int32_t use_hint(int32_t a, unsigned int hint, int32_t gamma2);
 
-/* ── Polynomial sampling ───────────────────────────────────────────────── */
+/* Polynomial-level rounding wrappers */
 
-/*
- * poly_uniform – Sample uniform polynomial in [0, q) via SHAKE-128.
- *
- * Algorithm 30, FIPS 204 (RejNTTPoly).
- * Input: 32-byte seed rho, 16-bit nonce (encodes matrix (row<<8)|col).
- */
-void poly_uniform(poly *a, const uint8_t seed[32], uint16_t nonce);
+void poly_power2round(poly *a1, poly *a0, const poly *a);
+void poly_decompose(poly *a1, poly *a0, const poly *a, int32_t gamma2);
+unsigned int poly_make_hint(poly *h, const poly *a0, const poly *a1,
+                            int32_t gamma2);
+void poly_use_hint(poly *b, const poly *a, const poly *h, int32_t gamma2);
 
-/*
- * poly_uniform_eta – Sample small polynomial with coefficients in [-eta, eta].
- *
- * Algorithm 31, FIPS 204 (RejBoundedPoly).
- * Input: 64-byte seed rho_prime, 16-bit nonce, eta ∈ {2, 4}.
- */
-void poly_uniform_eta(poly *a, const uint8_t seed[64], uint16_t nonce, int eta);
+/* Sampling (from ref/poly.h) */
 
-/*
- * poly_uniform_gamma1 – Sample masking polynomial with coefficients in
- *   (-gamma1, gamma1].
- *
- * Algorithm 32, FIPS 204.
- * Input: 64-byte seed rho_prime, 16-bit nonce, gamma1 ∈ {2^17, 2^19}.
- */
-void poly_uniform_gamma1(poly *a, const uint8_t seed[64],
+/*************************************************
+* Name:        poly_uniform
+*
+* Description: Sample polynomial with uniformly random coefficients
+*              in [0,Q-1] by performing rejection sampling on the
+*              output stream of SHAKE128(seed|nonce).
+*
+* Arguments:   - poly *a: pointer to output polynomial
+*              - const uint8_t seed[]: byte array with seed of length
+*                                      DILITHIUM_SEEDBYTES
+*              - uint16_t nonce: 2-byte nonce
+**************************************************/
+void poly_uniform(poly *a, const uint8_t seed[DILITHIUM_SEEDBYTES],
+                  uint16_t nonce);
+
+/*************************************************
+* Name:        poly_uniform_eta
+*
+* Description: Sample polynomial with uniformly random coefficients
+*              in [-ETA,ETA] by performing rejection sampling on the
+*              output stream from SHAKE256(seed|nonce).
+*
+* Arguments:   - poly *a: pointer to output polynomial
+*              - const uint8_t seed[]: byte array with seed of length
+*                                      DILITHIUM_CRHBYTES
+*              - uint16_t nonce: 2-byte nonce
+*              - int eta: bound on coefficients (2 or 4)
+**************************************************/
+void poly_uniform_eta(poly *a, const uint8_t seed[DILITHIUM_CRHBYTES],
+                      uint16_t nonce, int eta);
+
+/*************************************************
+* Name:        poly_uniform_gamma1
+*
+* Description: Sample polynomial with uniformly random coefficients
+*              in [-(GAMMA1-1), GAMMA1] by unpacking output stream of
+*              SHAKE256(seed|nonce).
+*
+* Arguments:   - poly *a: pointer to output polynomial
+*              - const uint8_t seed[]: byte array with seed of length
+*                                      DILITHIUM_CRHBYTES
+*              - uint16_t nonce: 16-bit nonce
+*              - int32_t gamma1: bound on coefficients
+**************************************************/
+void poly_uniform_gamma1(poly *a, const uint8_t seed[DILITHIUM_CRHBYTES],
                          uint16_t nonce, int32_t gamma1);
 
-/*
- * poly_challenge – Sample sparse ±1 challenge polynomial (SampleInBall).
- *
- * Algorithm 33, FIPS 204.
- * Input: 32-byte hash seed, tau = number of ±1 entries.
- * Output: polynomial with exactly tau non-zero entries, each ±1.
- */
-void poly_challenge(poly *c, const uint8_t seed[32], int tau);
+/*************************************************
+* Name:        poly_challenge
+*
+* Description: Implementation of H. Samples polynomial with TAU nonzero
+*              coefficients in {-1,1} using the output stream of
+*              SHAKE256(seed).
+*
+* Arguments:   - poly *c: pointer to output polynomial
+*              - const uint8_t seed[]: byte array containing seed
+*              - int tau: number of +/-1 coefficients
+**************************************************/
+void poly_challenge(poly *c, const uint8_t *seed, int tau);
 
-/* ── Matrix / vector operations ────────────────────────────────────────── */
+/* Vector / matrix operations (from ref/polyvec.h) */
 
-/*
- * expand_matrix – Expand seed rho into a k×l public matrix A.
- *
- * A[i][j] = poly_uniform(rho, (i<<8)|j),  coefficients in [0, q).
- */
-void expand_matrix(polymat *A, const uint8_t rho[32], int k, int l);
+void expand_matrix(polymat *A, const uint8_t rho[DILITHIUM_SEEDBYTES],
+                   int k, int l);
 
-/*
- * polyvecl_matrix_mul – t = A · v   (k-vector output, l-vector input)
- *
- * t[i] = Σ_{j=0}^{l-1}  A[i][j] · v[j]   (schoolbook poly mul)
- * Output coefficients are reduced into (-q, q) per poly_reduce.
- */
-void polyvecl_matrix_mul(polyveck *t, const polymat *A,
-                         const polyvecl *v, int k, int l);
+void polyvecl_uniform_eta(polyvecl *v, const uint8_t seed[DILITHIUM_CRHBYTES],
+                          uint16_t nonce, int l, int eta);
+void polyveck_uniform_eta(polyveck *v, const uint8_t seed[DILITHIUM_CRHBYTES],
+                          uint16_t nonce, int k, int eta);
 
-/* poly_vec_add – c[i] = a[i] + b[i]  for n polynomials */
-void poly_vec_add(poly *c, const poly *a, const poly *b, int n);
+void polyvecl_uniform_gamma1(polyvecl *v,
+                             const uint8_t seed[DILITHIUM_CRHBYTES],
+                             uint16_t nonce, int l, int32_t gamma1);
 
-/* poly_vec_sub – c[i] = a[i] - b[i]  for n polynomials */
-void poly_vec_sub(poly *c, const poly *a, const poly *b, int n);
+void polyvecl_reduce(polyvecl *v, int l);
+void polyvecl_add(polyvecl *w, const polyvecl *u, const polyvecl *v, int l);
+void polyvecl_sub(polyvecl *w, const polyvecl *u, const polyvecl *v, int l);
+void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
+                             const polyvecl *v, int l);
+int polyvecl_chknorm(const polyvecl *v, int l, int32_t bound);
 
-/* poly_vec_mul_scalar – c[i] = scalar · v[i]  (poly multiplication) */
-void poly_vec_mul_scalar(poly *c, const poly *scalar,
-                         const poly *v, int n);
+void polyveck_reduce(polyveck *v, int k);
+void polyveck_caddq(polyveck *v, int k);
+void polyveck_add(polyveck *w, const polyveck *u, const polyveck *v, int k);
+void polyveck_sub(polyveck *w, const polyveck *u, const polyveck *v, int k);
+void polyveck_shiftl(polyveck *v, int k);
+void polyveck_pointwise_poly(polyveck *r, const poly *a,
+                             const polyveck *v, int k);
+int polyveck_chknorm(const polyveck *v, int k, int32_t bound);
 
-/* poly_vec_reduce – Barrett-reduce all polynomials in a length-n vector */
-void poly_vec_reduce(poly *v, int n);
+void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v,
+                          int k);
+void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v,
+                        int k, int32_t gamma2);
+unsigned int polyveck_make_hint(polyveck *h, const polyveck *v0,
+                                const polyveck *v1, int k, int32_t gamma2);
+void polyveck_use_hint(polyveck *w, const polyveck *u, const polyveck *h,
+                       int k, int32_t gamma2);
 
-/* poly_vec_caddq – normalise to [0,q) all polynomials in a length-n vector */
-void poly_vec_caddq(poly *v, int n);
-
-/* poly_vec_inf_norm – max infinity norm across a length-n vector */
-int32_t poly_vec_inf_norm(const poly *v, int n);
+/*************************************************
+* Name:        polyvec_matrix_pointwise
+*
+* Description: Matrix-vector multiplication t = A * v using schoolbook
+*              polynomial multiplication.
+*
+* Arguments:   - polyveck *t: pointer to output vector (length k)
+*              - const polymat *A: pointer to k×l matrix
+*              - const polyvecl *v: pointer to input vector (length l)
+*              - int k: number of rows
+*              - int l: number of columns
+**************************************************/
+void polyvec_matrix_pointwise(polyveck *t, const polymat *A,
+                              const polyvecl *v, int k, int l);
 
 #endif /* DILITHIUM_POLY_H */

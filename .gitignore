@@ -23,3 +23,6 @@ sqrt_tonelli_shanks/prob
 sqrt_tonelli_shanks/sqrt
 sqrt_tonelli_shanks/test
 subtraction/sub
+dilithium/test_dilithium.c
+dilithium/test_dilithium.exe
+dilithium/*.exe
