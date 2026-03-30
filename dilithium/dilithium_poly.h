@@ -232,17 +232,24 @@ void poly_uniform_gamma1(poly *a, const uint8_t seed[DILITHIUM_CRHBYTES],
                          uint16_t nonce, int32_t gamma1);
 
 /*************************************************
-* Name:        poly_challenge
+* Name:        sample_in_ball
 *
-* Description: Implementation of H. Samples polynomial with TAU nonzero
-*              coefficients in {-1,1} using the output stream of
-*              SHAKE256(seed).
+* Description: SampleInBall — Algorithm 29, FIPS 204.
+*              "Hash into a Lattice": maps a challenge hash c_tilde
+*              to a ternary polynomial with exactly tau non-zero
+*              coefficients in {-1, +1}.
 *
-* Arguments:   - poly *c: pointer to output polynomial
-*              - const uint8_t seed[]: byte array containing seed
-*              - int tau: number of +/-1 coefficients
+*              Steps:
+*                1. h = SHAKE256(c_tilde)
+*                2. signs = first 8 bytes of h  (sign bitmask)
+*                3. Fisher-Yates shuffle over positions [N-tau, N-1],
+*                   assigning sign bit from `signs`
+*
+* Arguments:   - poly *c:              output polynomial
+*              - const uint8_t *seed:  c_tilde (DLT_CTILDEBYTES bytes)
+*              - int tau:              number of +/-1 coefficients
 **************************************************/
-void poly_challenge(poly *c, const uint8_t *seed, int tau);
+void sample_in_ball(poly *c, const uint8_t *seed, int tau);
 
 /* Vector / matrix operations (from ref/polyvec.h) */
 

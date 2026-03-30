@@ -133,7 +133,7 @@ int dilithium_sign(dilithium_sig *sig,
         hash_w1(sig->c_tilde, mu, &w1);
 
         /* (d) c = SampleInBall(c_tilde) */
-        poly_challenge(&c_poly, sig->c_tilde, DLT_TAU);
+        sample_in_ball(&c_poly, sig->c_tilde, DLT_TAU);
 
         /* (e) z = y + c*s1 */
         polyvecl_pointwise_poly(&z, &c_poly, &s1_hat, DLT_L);
@@ -251,7 +251,7 @@ int dilithium_sign_sb(dilithium_sig *sig,
 
         hash_w1(sig->c_tilde, mu, &w1);
 
-        poly_challenge(&c_poly, sig->c_tilde, DLT_TAU);
+        sample_in_ball(&c_poly, sig->c_tilde, DLT_TAU);
 
         /* z = y + c*s1  con schoolbook */
         polyvecl_pointwise_poly_sb(&z, &c_poly, &s1_hat, DLT_L);
@@ -337,7 +337,7 @@ int dilithium_verify(const dilithium_sig *sig,
 
     /* c = SampleInBall(c_tilde) */
     poly c_poly;
-    poly_challenge(&c_poly, sig->c_tilde, DLT_TAU);
+    sample_in_ball(&c_poly, sig->c_tilde, DLT_TAU);
 
     /* w' = A*z - c*t1*2^d
      * Pre-scale t1 by 2^D before multiplication by c. */
@@ -411,7 +411,7 @@ int dilithium_verify_sb(const dilithium_sig *sig,
     }
 
     poly c_poly;
-    poly_challenge(&c_poly, sig->c_tilde, DLT_TAU);
+    sample_in_ball(&c_poly, sig->c_tilde, DLT_TAU);
 
     polymat A;
     expand_matrix(&A, pk->rho, DLT_K, DLT_L);
