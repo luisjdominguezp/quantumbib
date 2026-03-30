@@ -136,18 +136,11 @@ int dilithium_keygen_sb(dilithium_pk *pk, dilithium_sk *sk,
     for (int i = 0; i < DLT_K; i++)
         sk->t1.vec[i] = pk->t1.vec[i];
 
+    /* tr = H(pkEncode(pk), TRBYTES)  — Alg. 1 FIPS 204 */
     {
-        size_t tr_in_len = DILITHIUM_SEEDBYTES
-                         + (size_t)DLT_K * DILITHIUM_N * sizeof(int32_t);
-        uint8_t *tr_in = (uint8_t *)malloc(tr_in_len);
-        memcpy(tr_in, pk->rho, DILITHIUM_SEEDBYTES);
-        for (int i = 0; i < DLT_K; i++)
-            memcpy(tr_in + DILITHIUM_SEEDBYTES
-                         + (size_t)i * DILITHIUM_N * sizeof(int32_t),
-                   pk->t1.vec[i].coeffs,
-                   DILITHIUM_N * sizeof(int32_t));
-        shake256_hash(sk->tr, DILITHIUM_TRBYTES, tr_in, tr_in_len);
-        free(tr_in);
+        uint8_t pk_bytes[MLDSA44_PK_BYTES];
+        pk_encode(pk_bytes, pk->rho, &pk->t1);
+        shake256_hash(sk->tr, DILITHIUM_TRBYTES, pk_bytes, MLDSA44_PK_BYTES);
     }
 
     return 0;
