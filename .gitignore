@@ -44,6 +44,3 @@ test_sign_sb*
 
 # Suite de tests
 tests/
-
-# Carpeta interna de Claude Code
-.claude/
