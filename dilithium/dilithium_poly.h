@@ -283,19 +283,16 @@ unsigned int polyveck_make_hint(polyveck *h, const polyveck *v0,
 void polyveck_use_hint(polyveck *w, const polyveck *u, const polyveck *h,
                        int k, int32_t gamma2);
 
-/*************************************************
-* Name:        polyvec_matrix_pointwise
-*
-* Description: Matrix-vector multiplication t = A * v using schoolbook
-*              polynomial multiplication.
-*
-* Arguments:   - polyveck *t: pointer to output vector (length k)
-*              - const polymat *A: pointer to k×l matrix
-*              - const polyvecl *v: pointer to input vector (length l)
-*              - int k: number of rows
-*              - int l: number of columns
-**************************************************/
+/* Matrix-vector multiplication using NTT */
 void polyvec_matrix_pointwise(polyveck *t, const polymat *A,
                               const polyvecl *v, int k, int l);
+
+/* Schoolbook (O(N^2)) variants — para comparar tiempos con NTT */
+void polyvec_matrix_sb(polyveck *t, const polymat *A,
+                       const polyvecl *v, int k, int l);
+void polyvecl_pointwise_poly_sb(polyvecl *r, const poly *a,
+                                const polyvecl *v, int l);
+void polyveck_pointwise_poly_sb(polyveck *r, const poly *a,
+                                const polyveck *v, int k);
 
 #endif /* DILITHIUM_POLY_H */

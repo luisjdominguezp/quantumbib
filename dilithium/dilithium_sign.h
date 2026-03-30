@@ -55,4 +55,13 @@ int dilithium_verify(const dilithium_sig *sig,
                      const uint8_t *msg, size_t mlen,
                      const dilithium_pk *pk);
 
+/* Variantes schoolbook — mismas funciones pero usan O(N^2) poly_schoolbook_mul */
+int dilithium_sign_sb(dilithium_sig *sig,
+                      const uint8_t *msg, size_t mlen,
+                      const dilithium_sk *sk);
+
+int dilithium_verify_sb(const dilithium_sig *sig,
+                        const uint8_t *msg, size_t mlen,
+                        const dilithium_pk *pk);
+
 #endif /* DILITHIUM_SIGN_H */

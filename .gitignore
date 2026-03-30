@@ -26,3 +26,24 @@ subtraction/sub
 dilithium/test_dilithium.c
 dilithium/test_dilithium.exe
 dilithium/*.exe
+
+# Binario principal
+main_program
+
+# Archivos de debug / experimentos NTT
+debug_ntt*
+
+# Tests sueltos en la raíz (fuentes y binarios)
+test_cmp_ntt_sb*
+test_ntt_ref*
+test_ntt_verify*
+test_runner
+test_sb_speed*
+test_sign_debug*
+test_sign_sb*
+
+# Suite de tests
+tests/
+
+# Carpeta interna de Claude Code
+.claude/

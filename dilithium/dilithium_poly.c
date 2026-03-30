@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <openssl/evp.h>
 #include "dilithium_poly.h"
+#include "dilithium_ntt.h"
 
 /* Internal SHAKE helpers (using OpenSSL instead of fips202.c) */
 
@@ -537,6 +538,36 @@ void poly_challenge(poly *c, const uint8_t *seed, int tau) {
   }
 }
 
+/* Schoolbook vector/matrix ops — usan poly_schoolbook_mul en vez de NTT */
+
+void polyvec_matrix_sb(polyveck *t, const polymat *A,
+                       const polyvecl *v, int k, int l) {
+  unsigned int i, j;
+  poly tmp;
+  for(i = 0; i < (unsigned)k; ++i) {
+    memset(t->vec[i].coeffs, 0, sizeof(t->vec[i].coeffs));
+    for(j = 0; j < (unsigned)l; ++j) {
+      poly_schoolbook_mul(&tmp, &A->mat[i][j], &v->vec[j]);
+      poly_add(&t->vec[i], &t->vec[i], &tmp);
+    }
+    poly_reduce(&t->vec[i]);
+  }
+}
+
+void polyvecl_pointwise_poly_sb(polyvecl *r, const poly *a,
+                                const polyvecl *v, int l) {
+  unsigned int i;
+  for(i = 0; i < (unsigned)l; ++i)
+    poly_schoolbook_mul(&r->vec[i], a, &v->vec[i]);
+}
+
+void polyveck_pointwise_poly_sb(polyveck *r, const poly *a,
+                                const polyveck *v, int k) {
+  unsigned int i;
+  for(i = 0; i < (unsigned)k; ++i)
+    poly_schoolbook_mul(&r->vec[i], a, &v->vec[i]);
+}
+
 /* Vector / matrix operations */
 
 /*************************************************
@@ -578,7 +609,7 @@ void polyvec_matrix_pointwise(polyveck *t, const polymat *A,
   for(i = 0; i < (unsigned)k; ++i) {
     memset(t->vec[i].coeffs, 0, sizeof(t->vec[i].coeffs));
     for(j = 0; j < (unsigned)l; ++j) {
-      poly_schoolbook_mul(&tmp, &A->mat[i][j], &v->vec[j]);
+      poly_ntt_mul(&tmp, &A->mat[i][j], &v->vec[j]);
       poly_add(&t->vec[i], &t->vec[i], &tmp);
     }
     poly_reduce(&t->vec[i]);
@@ -627,7 +658,7 @@ void polyvecl_pointwise_poly(polyvecl *r, const poly *a,
                              const polyvecl *v, int l) {
   unsigned int i;
   for(i = 0; i < (unsigned)l; ++i)
-    poly_schoolbook_mul(&r->vec[i], a, &v->vec[i]);
+    poly_ntt_mul(&r->vec[i], a, &v->vec[i]);
 }
 
 int polyvecl_chknorm(const polyvecl *v, int l, int32_t bound) {
@@ -684,7 +715,7 @@ void polyveck_pointwise_poly(polyveck *r, const poly *a,
                              const polyveck *v, int k) {
   unsigned int i;
   for(i = 0; i < (unsigned)k; ++i)
-    poly_schoolbook_mul(&r->vec[i], a, &v->vec[i]);
+    poly_ntt_mul(&r->vec[i], a, &v->vec[i]);
 }
 
 int polyveck_chknorm(const polyveck *v, int k, int32_t bound) {

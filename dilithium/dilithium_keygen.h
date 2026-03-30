@@ -74,4 +74,8 @@ int dilithium_keygen(dilithium_pk *pk, dilithium_sk *sk);
 int dilithium_keygen_from_seed(dilithium_pk *pk, dilithium_sk *sk,
                                const uint8_t seed[DILITHIUM_SEEDBYTES]);
 
+/* Variante schoolbook — igual que keygen_from_seed pero usa polyvec_matrix_sb */
+int dilithium_keygen_sb(dilithium_pk *pk, dilithium_sk *sk,
+                        const uint8_t seed[DILITHIUM_SEEDBYTES]);
+
 #endif /* DILITHIUM_KEYGEN_H */

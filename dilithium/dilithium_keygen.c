@@ -109,6 +109,58 @@ int dilithium_keygen_from_seed(dilithium_pk *pk, dilithium_sk *sk,
 *
 * Returns 0 on success, -1 if /dev/urandom is unavailable.
 **************************************************/
+/* Versión schoolbook de keygen — misma lógica pero usa polyvec_matrix_sb */
+int dilithium_keygen_sb(dilithium_pk *pk, dilithium_sk *sk,
+                        const uint8_t seed[DILITHIUM_SEEDBYTES])
+{
+    uint8_t h_input[DILITHIUM_SEEDBYTES + 2];
+    uint8_t h_out[2*DILITHIUM_SEEDBYTES + DILITHIUM_CRHBYTES];
+
+    memcpy(h_input, seed, DILITHIUM_SEEDBYTES);
+    h_input[DILITHIUM_SEEDBYTES]     = (uint8_t)DLT_K;
+    h_input[DILITHIUM_SEEDBYTES + 1] = (uint8_t)DLT_L;
+    shake256_hash(h_out, sizeof(h_out), h_input, sizeof(h_input));
+
+    memcpy(pk->rho,       h_out,                          DILITHIUM_SEEDBYTES);
+    memcpy(sk->rho_prime, h_out + DILITHIUM_SEEDBYTES,    DILITHIUM_CRHBYTES);
+    memcpy(sk->K,         h_out + DILITHIUM_SEEDBYTES + DILITHIUM_CRHBYTES,
+           DILITHIUM_SEEDBYTES);
+    memcpy(sk->rho, pk->rho, DILITHIUM_SEEDBYTES);
+
+    polymat A;
+    expand_matrix(&A, pk->rho, DLT_K, DLT_L);
+
+    polyvecl_uniform_eta(&sk->s1, sk->rho_prime, 0, DLT_L, DLT_ETA);
+    polyveck_uniform_eta(&sk->s2, sk->rho_prime, (uint16_t)DLT_L,
+                         DLT_K, DLT_ETA);
+
+    /* t = A*s1 + s2  — con schoolbook */
+    polyvec_matrix_sb(&pk->t, &A, &sk->s1, DLT_K, DLT_L);
+    polyveck_add(&pk->t, &pk->t, &sk->s2, DLT_K);
+    polyveck_reduce(&pk->t, DLT_K);
+    polyveck_caddq(&pk->t, DLT_K);
+
+    polyveck_power2round(&pk->t1, &sk->t0, &pk->t, DLT_K);
+    for (int i = 0; i < DLT_K; i++)
+        sk->t1.vec[i] = pk->t1.vec[i];
+
+    {
+        size_t tr_in_len = DILITHIUM_SEEDBYTES
+                         + (size_t)DLT_K * DILITHIUM_N * sizeof(int32_t);
+        uint8_t *tr_in = (uint8_t *)malloc(tr_in_len);
+        memcpy(tr_in, pk->rho, DILITHIUM_SEEDBYTES);
+        for (int i = 0; i < DLT_K; i++)
+            memcpy(tr_in + DILITHIUM_SEEDBYTES
+                         + (size_t)i * DILITHIUM_N * sizeof(int32_t),
+                   pk->t1.vec[i].coeffs,
+                   DILITHIUM_N * sizeof(int32_t));
+        shake256_hash(sk->tr, DILITHIUM_TRBYTES, tr_in, tr_in_len);
+        free(tr_in);
+    }
+
+    return 0;
+}
+
 int dilithium_keygen(dilithium_pk *pk, dilithium_sk *sk)
 {
     uint8_t seed[DILITHIUM_SEEDBYTES];
