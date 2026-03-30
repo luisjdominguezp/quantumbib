@@ -223,6 +223,28 @@ static void polyz_unpack(poly *r, const uint8_t *a)
     }
 }
 
+/* polyw1: 6 bits por coeficiente, w1 in [0,43], 4 coefs en 3 bytes */
+static void polyw1_pack(uint8_t *r, const poly *a)
+{
+    unsigned int i;
+    for (i = 0; i < DILITHIUM_N / 4; i++) {
+        r[3*i+0]  = (uint8_t) a->coeffs[4*i+0];
+        r[3*i+0] |= (uint8_t)(a->coeffs[4*i+1] << 6);
+        r[3*i+1]  = (uint8_t)(a->coeffs[4*i+1] >> 2);
+        r[3*i+1] |= (uint8_t)(a->coeffs[4*i+2] << 4);
+        r[3*i+2]  = (uint8_t)(a->coeffs[4*i+2] >> 4);
+        r[3*i+2] |= (uint8_t)(a->coeffs[4*i+3] << 2);
+    }
+}
+
+/* w1Encode — Alg. 28 FIPS 204 */
+void w1_encode(uint8_t *out, const polyveck *w1)
+{
+    unsigned int i;
+    for (i = 0; i < DLT_K; i++)
+        polyw1_pack(out + i * POLYW1_PACKEDBYTES, &w1->vec[i]);
+}
+
 /* pkEncode / pkDecode — Alg. 22/23 FIPS 204 */
 void pk_encode(uint8_t pk[MLDSA44_PK_BYTES],
                const uint8_t rho[DILITHIUM_SEEDBYTES],

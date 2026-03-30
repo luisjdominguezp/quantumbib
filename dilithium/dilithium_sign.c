@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <openssl/evp.h>
 #include "dilithium_sign.h"
+#include "dilithium_codec.h"
 
 /* Internal helpers */
 
@@ -33,17 +34,9 @@ static void shake256_hash(uint8_t *out, size_t outlen,
 **************************************************/
 static void recompute_tr(uint8_t *tr, const dilithium_pk *pk)
 {
-    size_t len = DILITHIUM_SEEDBYTES
-               + (size_t)DLT_K * DILITHIUM_N * sizeof(int32_t);
-    uint8_t *buf = (uint8_t *)malloc(len);
-    memcpy(buf, pk->rho, DILITHIUM_SEEDBYTES);
-    for (int i = 0; i < DLT_K; i++)
-        memcpy(buf + DILITHIUM_SEEDBYTES
-                   + (size_t)i * DILITHIUM_N * sizeof(int32_t),
-               pk->t1.vec[i].coeffs,
-               DILITHIUM_N * sizeof(int32_t));
-    shake256_hash(tr, DILITHIUM_TRBYTES, buf, len);
-    free(buf);
+    uint8_t pk_bytes[MLDSA44_PK_BYTES];
+    pk_encode(pk_bytes, pk->rho, &pk->t1);
+    shake256_hash(tr, DILITHIUM_TRBYTES, pk_bytes, MLDSA44_PK_BYTES);
 }
 
 /*************************************************
@@ -60,15 +53,11 @@ static void hash_w1(uint8_t *c_tilde,
                     const uint8_t mu[DILITHIUM_TRBYTES],
                     const polyveck *w1)
 {
-    size_t w1_bytes = (size_t)DLT_K * DILITHIUM_N * sizeof(int32_t);
-    size_t len = DILITHIUM_TRBYTES + w1_bytes;
+    /* c_tilde = H(mu || w1Encode(w1), lambda) — Alg. 2 FIPS 204 */
+    size_t len = DILITHIUM_TRBYTES + (size_t)DLT_K * POLYW1_PACKEDBYTES;
     uint8_t *buf = (uint8_t *)malloc(len);
     memcpy(buf, mu, DILITHIUM_TRBYTES);
-    for (int i = 0; i < DLT_K; i++)
-        memcpy(buf + DILITHIUM_TRBYTES
-                   + (size_t)i * DILITHIUM_N * sizeof(int32_t),
-               w1->vec[i].coeffs,
-               DILITHIUM_N * sizeof(int32_t));
+    w1_encode(buf + DILITHIUM_TRBYTES, w1);
     shake256_hash(c_tilde, DLT_CTILDEBYTES, buf, len);
     free(buf);
 }

@@ -7,10 +7,11 @@
 #include "dilithium_sign.h"
 
 /* bytes empacados por tipo de polinomio */
-#define POLYT1_PACKEDBYTES  320   /* 10 bits/coef */
-#define POLYETA_PACKEDBYTES  96   /*  3 bits/coef, eta=2 */
-#define POLYT0_PACKEDBYTES  416   /* 13 bits/coef */
-#define POLYZ_PACKEDBYTES   576   /* 18 bits/coef, gamma1=2^17 */
+#define POLYT1_PACKEDBYTES   320  /* 10 bits/coef */
+#define POLYETA_PACKEDBYTES   96  /*  3 bits/coef, eta=2 */
+#define POLYT0_PACKEDBYTES   416  /* 13 bits/coef */
+#define POLYZ_PACKEDBYTES    576  /* 18 bits/coef, gamma1=2^17 */
+#define POLYW1_PACKEDBYTES   192  /*  6 bits/coef, w1 in [0,43] */
 
 /* tamaños de wire ML-DSA-44 (FIPS 204 Tabla 2) */
 #define MLDSA44_PK_BYTES   1312
@@ -47,5 +48,8 @@ void sig_encode(uint8_t sig[MLDSA44_SIG_BYTES],
 /* devuelve -1 si los hints estan mal formados */
 int  sig_decode(dilithium_sig *s,
                 const uint8_t sig[MLDSA44_SIG_BYTES]);
+
+/* w1Encode — Alg. 28 FIPS 204: 6 bits/coef, k*192 bytes en total */
+void w1_encode(uint8_t *out, const polyveck *w1);
 
 #endif
