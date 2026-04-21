@@ -1,6 +1,7 @@
 #include <bits/time.h>
 #include <criterion/internal/test.h>
 #include <stdio.h>
+#include <string.h>
 #include <inttypes.h>
 #include <time.h>
 #include <x86intrin.h>
@@ -18,6 +19,9 @@
 #include "check0s/check0s.h"
 #include "check1s/check1s.h"
 #include "hash/sha3.h"
+#include "dilithium/dilithium_keygen.h"
+#include "dilithium/dilithium_sign.h"
+#include "dilithium/dilithium_codec.h"
 
 // Copyright © 2024 Horacio Hernandez
 
@@ -114,6 +118,7 @@ int main(){
         printf("11) Check is LSB is 1\n");
         printf("12) Hash\n");
         printf("13) Exit\n");
+        printf("14) ML-DSA Demo (sign & verify a message)\n");
         printf("Enter your choice: ");
 
         if(scanf("%d", &choice) != 1){
@@ -426,6 +431,114 @@ int main(){
             case 13:
                 printf("Exiting program.\n");
                 return 0;
+            case 14: {
+                printf("\n");
+                printf("╔══════════════════════════════════════════════════════╗\n");
+                printf("║        ML-DSA (Dilithium) Demo  —  FIPS 204         ║\n");
+                printf("║     Post-Quantum Digital Signature Scheme            ║\n");
+                printf("╚══════════════════════════════════════════════════════╝\n\n");
+
+                /* 1. Leer mensaje */
+                char msg_buf[512];
+                printf("  Escribe el mensaje a firmar: ");
+                scanf(" %[^\n]", msg_buf);
+                size_t mlen = strlen(msg_buf);
+                printf("  Mensaje (%zu bytes): \"%s\"\n", mlen, msg_buf);
+
+                /* 2. Generar par de llaves */
+                printf("\n──────────────────────────────────────────────────────\n");
+                printf("  PASO 1 — KeyGen (Alg. 1 FIPS 204)\n");
+                printf("──────────────────────────────────────────────────────\n");
+                printf("  Genera dos vectores secretos cortos s1, s2\n");
+                printf("  y calcula t = A*s1 + s2 usando la matriz publica A.\n\n");
+
+                dilithium_pk pk;
+                dilithium_sk sk;
+                if (dilithium_keygen(&pk, &sk) != 0) {
+                    printf("  ERROR: keygen failed.\n");
+                    break;
+                }
+
+                printf("  [PK] rho (semilla de A):  ");
+                for (int i = 0; i < 32; i++) printf("%02X", pk.rho[i]);
+                printf("\n");
+                printf("  [PK] t1 (parte alta de t, primer coef): %d\n", pk.t1.vec[0].coeffs[0]);
+                printf("  [SK] K  (clave de firma):  ");
+                for (int i = 0; i < 8; i++) printf("%02X", sk.K[i]);
+                printf("...\n");
+                printf("  [SK] tr (hash de pk):      ");
+                for (int i = 0; i < 8; i++) printf("%02X", sk.tr[i]);
+                printf("...\n");
+
+                /* 3. Firmar */
+                printf("\n──────────────────────────────────────────────────────\n");
+                printf("  PASO 2 — Sign (Alg. 2 FIPS 204)\n");
+                printf("──────────────────────────────────────────────────────\n");
+                printf("  1. Muestrea vector aleatorio y  (mascara)\n");
+                printf("  2. Calcula w = A*y, descompone en w1 (bits altos)\n");
+                printf("  3. c_tilde = SHAKE-256(mu || w1Encode(w1))  [Alg. 28]\n");
+                printf("  4. c = SampleInBall(c_tilde)                [Alg. 29]\n");
+                printf("  5. z = y + c*s1  (respuesta)\n");
+                printf("  6. Rejection sampling — si z es muy grande, repite\n\n");
+
+                dilithium_sig sig;
+                if (dilithium_sign(&sig, (uint8_t *)msg_buf, mlen, &sk) != 0) {
+                    printf("  ERROR: sign failed.\n");
+                    break;
+                }
+
+                printf("  [SIG] c_tilde (challenge hash, 32 bytes):\n        ");
+                for (int i = 0; i < DLT_CTILDEBYTES; i++) {
+                    printf("%02X", sig.c_tilde[i]);
+                    if ((i + 1) % 16 == 0) printf("\n        ");
+                }
+                printf("\n");
+                printf("  [SIG] z[0][0] (primer coef de z): %d\n", sig.z.vec[0].coeffs[0]);
+
+                /* contar hint bits */
+                int hint_count = 0;
+                for (int i = 0; i < DLT_K; i++)
+                    for (int j = 0; j < DILITHIUM_N; j++)
+                        hint_count += (sig.h.vec[i].coeffs[j] != 0);
+                printf("  [SIG] hint bits activos: %d / %d (omega max)\n", hint_count, DLT_OMEGA);
+
+                /* 4. Verificar firma valida */
+                printf("\n──────────────────────────────────────────────────────\n");
+                printf("  PASO 3 — Verify mensaje original (Alg. 3 FIPS 204)\n");
+                printf("──────────────────────────────────────────────────────\n");
+                printf("  Reconstruye w1' = HighBits(A*z - c*t)\n");
+                printf("  Recomputa c_tilde' = SHAKE-256(mu || w1Encode(w1'))\n");
+                printf("  Compara c_tilde' == c_tilde\n\n");
+
+                int rv = dilithium_verify(&sig, (uint8_t *)msg_buf, mlen, &pk);
+                if (rv == 0)
+                    printf("  >>> RESULTADO: FIRMA VALIDA  (c_tilde coincide)\n");
+                else
+                    printf("  >>> RESULTADO: INVALIDA (inesperado!)\n");
+
+                /* 5. Tamper y verificar */
+                printf("\n──────────────────────────────────────────────────────\n");
+                printf("  PASO 4 — Verify mensaje alterado\n");
+                printf("──────────────────────────────────────────────────────\n");
+                printf("  Modificamos el byte 0: '%c' (0x%02X) -> 0x%02X\n",
+                       msg_buf[0], (unsigned char)msg_buf[0],
+                       (unsigned char)(msg_buf[0] ^ 0xFF));
+                msg_buf[0] ^= 0xFF;
+                printf("  Mensaje alterado: \"%s\"\n", msg_buf);
+                printf("  Verificando con la MISMA firma...\n\n");
+
+                rv = dilithium_verify(&sig, (uint8_t *)msg_buf, mlen, &pk);
+                if (rv != 0)
+                    printf("  >>> RESULTADO: FIRMA RECHAZADA  (c_tilde no coincide)\n");
+                else
+                    printf("  >>> RESULTADO: ACEPTADA (inesperado!)\n");
+
+                printf("\n╔══════════════════════════════════════════════════════╗\n");
+                printf("║  Conclusion: cualquier cambio al mensaje invalida   ║\n");
+                printf("║  la firma. No se puede falsificar sin la llave sk.  ║\n");
+                printf("╚══════════════════════════════════════════════════════╝\n\n");
+                break;
+            }
             default:
                 printf("Invalid operation choice.\n");
                 break;
